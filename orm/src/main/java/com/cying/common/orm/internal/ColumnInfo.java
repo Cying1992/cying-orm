@@ -1,13 +1,10 @@
 package com.cying.common.orm.internal;
 
+import com.cying.common.orm.Column;
 import com.cying.common.orm.NotNull;
 import com.cying.common.orm.Unique;
-import com.cying.common.orm.Column;
 
-import javax.lang.model.element.Element;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
 
 /**
  * User: Cying
@@ -30,7 +27,7 @@ public class ColumnInfo {
 
         private final String type;
 
-        private ColumnType(String type) {
+         ColumnType(String type) {
             this.type = type;
         }
 
@@ -50,7 +47,7 @@ public class ColumnInfo {
 
         private final String type;
 
-        private PrefixType(String type) {
+        PrefixType(String type) {
             this.type = type;
         }
 
@@ -84,14 +81,13 @@ public class ColumnInfo {
         FLOAT_TYPE(Float.TYPE.getCanonicalName()),
 
         //PrefixType.STRING
-       // CHARACTER(Character.TYPE.getCanonicalName()),
+        // CHARACTER(Character.TYPE.getCanonicalName()),
         STRING(String.class.getCanonicalName());
-
 
 
         private final String type;
 
-        private FieldType(String type) {
+         FieldType(String type) {
             this.type = type;
         }
 
@@ -161,8 +157,6 @@ public class ColumnInfo {
 
     private String columnSQL;
 
-    private FieldType fieldType;
-
     private String beforeConvertCursor, afterConvertCursor;
     private String beforeConvertValues, afterConvertValues;
 
@@ -170,16 +164,16 @@ public class ColumnInfo {
 
     private String fieldClassName;
 
-    public ColumnInfo(VariableElement fieldElement,String fieldClassName)throws Exception{
+    public ColumnInfo(VariableElement fieldElement, String fieldClassName) throws Exception {
         this.fieldElement = fieldElement;
-        this.fieldClassName=fieldClassName;
+        this.fieldClassName = fieldClassName;
         initName();
         initType();
         initColumnSQL();
     }
 
     private void initName() {
-        fieldName=fieldElement.getSimpleName().toString();
+        fieldName = fieldElement.getSimpleName().toString();
         Column column = fieldElement.getAnnotation(Column.class);
         if (column == null) {
             columnName = fieldName.toLowerCase();
@@ -201,7 +195,7 @@ public class ColumnInfo {
     }
 
     private void initType() {
-        fieldType = FieldType.getFieldType(fieldClassName);
+        FieldType fieldType = FieldType.getFieldType(fieldClassName);
 
         if (fieldType == FieldType.NULL) {
             throw new IllegalArgumentException("not support the field which type is  " + fieldClassName);
@@ -226,7 +220,7 @@ public class ColumnInfo {
                 break;
 
             case STRING:
-            //case CHARACTER:
+                //case CHARACTER:
                 columnType = ColumnType.TEXT;
                 break;
 
@@ -290,7 +284,7 @@ public class ColumnInfo {
     }
 
     private void initColumnSQL() {
-        StringBuilder builder = new StringBuilder(" ");
+        StringBuilder builder = new StringBuilder();
         builder.append(columnName);
         builder.append(" ");
         builder.append(columnType);
@@ -317,7 +311,7 @@ public class ColumnInfo {
 
     public String brewCursorToEntity(String cursorParamName, String entityParamName) {
 
-        String result = String.format("     %s.%s=%s%s.get%s(%s.getColumnIndex(\"%s\"))%s;",
+        return  String.format("     %s.%s=%s%s.get%s(%s.getColumnIndex(\"%s\"))%s;",
                 entityParamName,
                 fieldName,
                 beforeConvertCursor,
@@ -326,19 +320,16 @@ public class ColumnInfo {
                 cursorParamName,
                 columnName,
                 afterConvertCursor);
-        return result;
     }
 
     public String brewEntityToValues(String entityParamName, String valuesParamName) {
-        String result = String.format("   %s.put(\"%s\",%s%s.%s%s);",
+        return  String.format("   %s.put(\"%s\",%s%s.%s%s);",
                 valuesParamName,
                 columnName,
                 beforeConvertValues,
                 entityParamName,
                 fieldName,
                 afterConvertValues);
-
-        return result;
     }
 
 }

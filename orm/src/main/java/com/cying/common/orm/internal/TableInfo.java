@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class TableInfo {
 
-    private Map<String, ColumnInfo> columnInfoMap = new LinkedHashMap<String, ColumnInfo>();
+    private Map<String, ColumnInfo> columnInfoMap = new LinkedHashMap<>();
 
     private String tableName;
     private String entityClassName;
@@ -23,8 +23,8 @@ public class TableInfo {
     private boolean hasPrimaryKey;
 
     public TableInfo(String tableName,
-            String classPackageName,String entityClassName, String daoClassName) {
-        this.tableName=tableName;
+                     String classPackageName, String entityClassName, String daoClassName) {
+        this.tableName = tableName;
         this.entityClassName = entityClassName;
         this.classPackageName = classPackageName;
         this.daoClassName = daoClassName;
@@ -50,9 +50,9 @@ public class TableInfo {
         this.primaryKeyFieldName = primaryKeyFieldName;
     }
 
-    public void setPrimaryKeyColumnName(String primaryKeyColumnName){
-      this.primaryKeyColumnName = primaryKeyColumnName;
-        hasPrimaryKey=true;
+    public void setPrimaryKeyColumnName(String primaryKeyColumnName) {
+        this.primaryKeyColumnName = primaryKeyColumnName;
+        hasPrimaryKey = true;
     }
 
     public boolean hasPrimaryKey() {
@@ -67,9 +67,9 @@ public class TableInfo {
         return primaryKeyFieldName;
     }
 
-    public void addColumn(ColumnInfo columnInfo) throws Exception{
-        if (columnInfoMap.containsKey(columnInfo.getColumnName())){
-              throw new IllegalArgumentException("column"+columnInfo.getColumnName()+" is already exists ");
+    public void addColumn(ColumnInfo columnInfo) throws Exception {
+        if (columnInfoMap.containsKey(columnInfo.getColumnName())) {
+            throw new IllegalArgumentException("column" + columnInfo.getColumnName() + " is already exists ");
         }
         columnInfoMap.put(columnInfo.getColumnName(), columnInfo);
     }
@@ -113,7 +113,7 @@ public class TableInfo {
         builder.append(brewGetTableName())
                 .append(brewGetIndentity())
                 .append(brewGetIndentityName())
-                ;
+        ;
         builder.append("}\n");
         return builder.toString();
     }
@@ -183,7 +183,7 @@ public class TableInfo {
         return builder.toString();
     }
 
-    public String brewGetIndentityName(){
+    public String brewGetIndentityName() {
         StringBuilder builder = new StringBuilder();
         builder.append("\n");
         builder.append(" @Override ");
@@ -194,7 +194,7 @@ public class TableInfo {
         return builder.toString();
     }
 
-    public String brewGetIndentity(){
+    public String brewGetIndentity() {
         StringBuilder builder = new StringBuilder();
         builder.append("\n");
         builder.append(" @Override ");

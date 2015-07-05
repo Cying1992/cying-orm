@@ -21,7 +21,6 @@ import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.util.*;
 
-import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
@@ -53,7 +52,7 @@ public final class ORMProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        Set<String> types = new LinkedHashSet<String>();
+        Set<String> types = new LinkedHashSet<>();
         types.add(Column.class.getCanonicalName());
         types.add(Ignore.class.getCanonicalName());
         types.add(NotNull.class.getCanonicalName());
@@ -104,10 +103,10 @@ public final class ORMProcessor extends AbstractProcessor {
                 return tableInfoMap;
             }
             String tableName = element.getAnnotation(Table.class).value().toLowerCase();
-            if (tableName == null || tableName.isEmpty()) {
+            if (tableName.isEmpty()) {
                 tableName = element.getSimpleName().toString().toLowerCase();
             }
-            if (tableInfoMap.containsKey(tableName)) {
+            if (tableInfoMap.containsKey(element)) {
                 error(element, "already exists table with name of %s", tableName);
                 continue;
             } else {
@@ -123,8 +122,8 @@ public final class ORMProcessor extends AbstractProcessor {
                 addColumnInfo(tableInfo, fieldElement);
             }
 
-            if(!tableInfo.hasPrimaryKey()){
-                error(element,"%s don't have primary key",tableInfo.getTableName());
+            if (!tableInfo.hasPrimaryKey()) {
+                error(element, "%s don't have primary key", tableInfo.getTableName());
             }
         }
         return tableInfoMap;
@@ -137,8 +136,7 @@ public final class ORMProcessor extends AbstractProcessor {
     }
 
     private void addColumnInfo(TableInfo tableInfo, VariableElement fieldElement) {
-        if(isInaccessibleViaGeneratedCode(Column.class,"fields",fieldElement))
-        {
+        if (isInaccessibleViaGeneratedCode(Column.class, "fields", fieldElement)) {
             return;
         }
         String fieldName = fieldElement.getSimpleName().toString();
@@ -216,12 +214,12 @@ public final class ORMProcessor extends AbstractProcessor {
     }
 
     private boolean isInaccessibleViaGeneratedCode(Class<? extends Annotation> annotationClass,
-                                                   String targetThing,Element element) {
+                                                   String targetThing, Element element) {
 
         boolean hasError = false;
-         String className=element.getSimpleName().toString();
-        if(element instanceof TypeElement){
-             className=((TypeElement)element).getQualifiedName().toString();
+        String className = element.getSimpleName().toString();
+        if (element instanceof TypeElement) {
+            className = ((TypeElement) element).getQualifiedName().toString();
         }
         Set<Modifier> modifiers = element.getModifiers();
         if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {

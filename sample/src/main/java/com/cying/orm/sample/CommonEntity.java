@@ -1,6 +1,5 @@
 package com.cying.orm.sample;
 
-import com.cying.common.orm.Column;
 import com.cying.common.orm.Key;
 import com.cying.common.orm.Table;
 

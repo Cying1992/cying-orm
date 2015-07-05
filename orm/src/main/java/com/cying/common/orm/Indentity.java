@@ -7,8 +7,10 @@ package com.cying.common.orm;
  */
 public interface Indentity {
     long getIndentity();
+
     void setIndentity(long id);
-    default String getIndentityName(){
+
+    default String getIndentityName() {
         return "id";
     }
 }

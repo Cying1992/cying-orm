@@ -11,12 +11,12 @@ import dalvik.system.DexFile;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.cying.common.orm.internal.ORMProcessor.ANDROID_PREFIX;
-import static com.cying.common.orm.internal.ORMProcessor.JAVA_PREFIX;
-import static com.cying.common.orm.internal.ORMProcessor.SUFFIX;
+import static com.cying.common.orm.internal.ORMProcessor.*;
 
 /**
  * User: Cying
@@ -27,7 +27,7 @@ public class ORMUtil {
     public interface SQLiteCallback {
         void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion);
 
-        public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion);
+        void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion);
     }
 
     static SQLiteOpenHelper sqLiteOpenHelper;
@@ -47,11 +47,6 @@ public class ORMUtil {
         ORMUtil.debug = debug;
     }
 
-    public static void loadAllEntityClass(Class<?>... entityClass) {
-        for (Class<?> cls : entityClass) {
-            // Class.forName()
-        }
-    }
 
     private static String getSourcePath(Context context) throws PackageManager.NameNotFoundException {
         return context.getPackageManager().getApplicationInfo(context.getPackageName(), 0).sourceDir;
@@ -70,8 +65,9 @@ public class ORMUtil {
                 String suffix = SUFFIX + ".class";
 
                 String classFilePath;
-                if (classDirectory.listFiles() != null) {
-                    for (File filePath : Arrays.asList(classDirectory.listFiles())) {
+                File[] files=classDirectory.listFiles();
+                if (files!= null) {
+                    for (File filePath :files) {
                         classFilePath = filePath.getPath();
                         if (classFilePath.endsWith(suffix)) {
                             classFilePath = classFilePath.substring(classFilePath.indexOf(packagePath), classFilePath.lastIndexOf(".class")).replace(seperator, ".");
@@ -139,22 +135,21 @@ public class ORMUtil {
 
     public static <T> BaseDao<T> getDao(Class<T> entityClass) {
         try {
-            BaseDao<T> baseDao = findDao(entityClass);
-            return baseDao;
+            return findDao(entityClass);
         } catch (Exception e) {
             throw new RuntimeException("Unable to find dao class for " + entityClass.getName(), e);
         }
     }
 
     static <T> BaseDao<T> findDao(Class<T> entityClass) throws IllegalAccessException, InstantiationException, ClassNotFoundException {
-        BaseDao<T> baseDao = null;
+        BaseDao<T> baseDao;
         if (baseDaoMap.containsKey(entityClass)) {
             baseDao = (BaseDao<T>) baseDaoMap.get(entityClass);
         } else {
             String clsName = entityClass.getName();
             if (clsName.startsWith(ANDROID_PREFIX) || clsName.startsWith(JAVA_PREFIX)) {
                 if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
-                return baseDao;
+                return null;
             }
             try {
                 Class<?> entityDaoClass = Class.forName(clsName + ORMProcessor.SUFFIX);

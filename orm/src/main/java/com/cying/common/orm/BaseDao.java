@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
 
 public abstract class BaseDao<T> {
 
-    protected static void saveSQL(String sql){
+    protected static void saveSQL(String sql) {
         ORMUtil.putSQL(sql);
     }
 
@@ -39,7 +39,7 @@ public abstract class BaseDao<T> {
     }
 
     public void delete(T entity) {
-        ORMUtil.open().delete(getTableName(),getIndentityName() + "=?",
+        ORMUtil.open().delete(getTableName(), getIndentityName() + "=?",
                 new String[]{String.valueOf(getIndentity(entity))});
         ORMUtil.close();
     }

@@ -1,6 +1,7 @@
 package com.cying.orm.sample;
 
-import com.cying.common.orm.*;
+import com.cying.common.orm.Key;
+import com.cying.common.orm.Table;
 
 /**
  * User: Cying
