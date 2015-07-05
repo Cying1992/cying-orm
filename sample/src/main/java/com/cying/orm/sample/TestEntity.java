@@ -9,7 +9,6 @@ import com.cying.common.orm.*;
  */
 @Table
 public class TestEntity implements Indentity{
-    @Key long id;
     @Key long myid;
 
     String fuck;
