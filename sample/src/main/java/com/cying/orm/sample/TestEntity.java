@@ -8,26 +8,6 @@ import com.cying.common.orm.*;
  * Time: 14:22
  */
 @Table
-public class TestEntity implements Indentity{
+public class TestEntity{
     @Key long myid;
-
-    String fuck;
-    @NotNull @Unique
-    int my;
-    double age;
-    float phone;
-    boolean b;
-    byte[] content;
-
-    public long getIndentity() {
-        return 0;
-    }
-
-    public void setIndentity(long id) {
-
-    }
-
-    public String getIndentityName() {
-        return null;
-    }
 }

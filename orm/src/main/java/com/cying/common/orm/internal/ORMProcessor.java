@@ -37,6 +37,7 @@ public final class ORMProcessor extends AbstractProcessor {
     public static final String ANDROID_PREFIX = "android.";
     public static final String JAVA_PREFIX = "java.";
 
+
     private Elements elementUtils;
     private Types typeUtils;
     private Filer filer;
@@ -71,7 +72,6 @@ public final class ORMProcessor extends AbstractProcessor {
             for (Map.Entry<TypeElement, TableInfo> entry : tableInfoMap.entrySet()) {
                 TypeElement typeElement = entry.getKey();
                 TableInfo tableInfo = entry.getValue();
-
                 try {
                     JavaFileObject jfo = filer.createSourceFile(tableInfo.getFqcn(), typeElement);
                     Writer writer = jfo.openWriter();
@@ -83,6 +83,7 @@ public final class ORMProcessor extends AbstractProcessor {
                             e.getMessage());
                 }
             }
+
 
             return true;
         } catch (Exception e) {
@@ -120,6 +121,10 @@ public final class ORMProcessor extends AbstractProcessor {
             for (VariableElement fieldElement : ElementFilter.fieldsIn(element.getEnclosedElements())) {
 
                 addColumnInfo(tableInfo, fieldElement);
+            }
+
+            if(!tableInfo.hasPrimaryKey()){
+                error(element,"%s don't have primary key",tableInfo.getTableName());
             }
         }
         return tableInfoMap;

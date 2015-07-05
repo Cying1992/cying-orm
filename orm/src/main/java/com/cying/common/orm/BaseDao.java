@@ -17,13 +17,16 @@ import java.util.NoSuchElementException;
 
 public abstract class BaseDao<T> {
 
+    protected static void saveSQL(String sql){
+        ORMUtil.putSQL(sql);
+    }
+
     public abstract T cursorToEntity(Cursor cursor);
 
     public abstract ContentValues entityToValues(T entity);
 
     public abstract String getTableName();
 
-    public abstract String getCreateTable();
 
     public abstract String getIndentityName();
 

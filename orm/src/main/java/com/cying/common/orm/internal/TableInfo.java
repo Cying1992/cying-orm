@@ -30,6 +30,10 @@ public class TableInfo {
         this.daoClassName = daoClassName;
     }
 
+    public String getClassPackageName() {
+        return classPackageName;
+    }
+
     public String getEntityClassName() {
         return entityClassName;
     }
@@ -96,15 +100,16 @@ public class TableInfo {
         builder.append("package ").append(classPackageName).append(";\n\n");
         builder.append("import android.content.ContentValues;\n");
         builder.append("import android.database.Cursor;\n");
+        //builder.append("import com.cying.common.orm.ORMUtil;\n");
         builder.append("import com.cying.common.orm.BaseDao;\n\n");
         builder.append("public class ")
                 .append(daoClassName)
                 .append(" extends BaseDao<")
                 .append(entityClassName)
                 .append(">{\n\n");
+        builder.append(brewGetCreateTable());
         builder.append(brewCursorToEntity());
         builder.append(brewEntityToValues());
-        builder.append(brewGetCreateTable());
         builder.append(brewGetTableName())
                 .append(brewGetIndentity())
                 .append(brewGetIndentityName())
@@ -116,11 +121,15 @@ public class TableInfo {
     String brewGetCreateTable() {
         StringBuilder builder = new StringBuilder();
         builder.append("\n");
-        builder.append(" @Override ");
-        builder.append("public String getCreateTable(){\n");
-        builder.append("    return \"");
-        builder.append(getCreateTableSQL());
-        builder.append("\";\n}\n");
+        builder.append("    private static  String SQL=\"")
+                .append(getCreateTableSQL()).append(";\";\n");
+        builder.append("    static {\n  saveSQL(SQL);\n}\n");
+
+//        builder.append(" @Override ");
+//        builder.append("private  String getCreateTable(){\n");
+//        builder.append("    return \"");
+//        builder.append(getCreateTableSQL());
+//        builder.append("\";\n}\n");
         return builder.toString();
     }
 
