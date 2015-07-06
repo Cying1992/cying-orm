@@ -19,7 +19,7 @@
                     <source>1.7</source>
                     <target>1.7</target>
                     <!-- Disable annotation processing for ourselves. -->
-                    <compilerArgument>-proc:none</compilerArgument>
+                   <compilerArgument>-proc:none</compilerArgument>
                 </configuration>
             </plugin>
 

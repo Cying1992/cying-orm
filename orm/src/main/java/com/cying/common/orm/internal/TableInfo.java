@@ -77,18 +77,18 @@ public class TableInfo {
     public String getCreateTableSQL() {
         if (createTableSQL == null) {
             StringBuilder builder = new StringBuilder();
-            builder.append(" CREATE TABLE ");
+            builder.append("CREATE TABLE ");
             builder.append(tableName);
-            builder.append(" ( ");
+            builder.append(" (");
             builder.append(primaryKeyColumnName);
-            builder.append(" INTEGER PRIMARY KEY AUTOINCREMENT ");
+            builder.append(" INTEGER PRIMARY KEY AUTOINCREMENT");
 
             for (ColumnInfo columnInfo : columnInfoMap.values()) {
-                builder.append(" , ");
+                builder.append(",");
                 builder.append(columnInfo.getColumnSQL());
             }
 
-            builder.append(" );");
+            builder.append(");");
             createTableSQL = builder.toString();
         }
         return createTableSQL;
@@ -97,33 +97,34 @@ public class TableInfo {
     String brewJava() {
         StringBuilder builder = new StringBuilder();
         builder.append("// Generated code from Cying-ORM. Do not modify!\n");
-        builder.append("package ").append(classPackageName).append(";\n\n");
+        builder.append("package ").append(classPackageName).append(";\n");
         builder.append("import android.content.ContentValues;\n");
         builder.append("import android.database.Cursor;\n");
         //builder.append("import com.cying.common.orm.ORMUtil;\n");
-        builder.append("import com.cying.common.orm.BaseDao;\n\n");
+        builder.append("import com.cying.common.orm.BaseDao;\n");
         builder.append("public class ")
                 .append(daoClassName)
                 .append(" extends BaseDao<")
                 .append(entityClassName)
-                .append(">{\n\n");
+                .append("> {\n");
         builder.append(brewGetCreateTable());
         builder.append(brewCursorToEntity());
         builder.append(brewEntityToValues());
         builder.append(brewGetTableName())
-                .append(brewGetIndentity())
                 .append(brewGetIndentityName())
-        ;
+                .append(brewGetIndentity());
         builder.append("}\n");
         return builder.toString();
     }
 
     String brewGetCreateTable() {
         StringBuilder builder = new StringBuilder();
-        builder.append("\n");
-        builder.append("    private static  String SQL=\"")
+        builder.append("    private static String SQL=\"")
                 .append(getCreateTableSQL()).append("\";\n");
-        builder.append("    static {\n  saveSQL(SQL);\n}\n");
+        builder.append("    static {\n")
+               .append("        saveSQL(SQL);\n")
+               .append("    }\n");
+
 
 //        builder.append(" @Override ");
 //        builder.append("private  String getCreateTable(){\n");
@@ -135,73 +136,67 @@ public class TableInfo {
 
     String brewGetTableName() {
         StringBuilder builder = new StringBuilder();
-        builder.append("\n");
-        builder.append(" @Override ");
-        builder.append("public String getTableName(){\n");
-        builder.append("    return \"");
+        builder.append("    @Override public String getTableName() { return \"");
         builder.append(tableName);
-        builder.append("\";\n}\n");
+        builder.append("\"; }\n");
         return builder.toString();
     }
 
     String brewCursorToEntity() {
         StringBuilder builder = new StringBuilder();
-        builder.append("\n @Override public ")
+        builder.append("    @Override public ")
                 .append(entityClassName)
-                .append(" cursorToEntity(Cursor cursor){\n     ")
+                .append(" cursorToEntity(Cursor cursor) {\n        ")
                 .append(entityClassName)
                 .append(" entity=new ")
                 .append(entityClassName)
                 .append("();\n");
 
         //primary key
-        builder.append("    entity.")
+        builder.append("        entity.")
                 .append(primaryKeyFieldName)
                 .append("=cursor.getLong(cursor.getColumnIndex(\"")
                 .append(primaryKeyColumnName).append("\"));\n");
 
         for (ColumnInfo columnInfo : columnInfoMap.values()) {
+            builder.append("        ");
             builder.append(columnInfo.brewCursorToEntity("cursor", "entity"));
             builder.append("\n");
         }
 
-        builder.append("    return entity;\n}\n");
+        builder.append("        return entity;\n    }\n");
         return builder.toString();
     }
 
     String brewEntityToValues() {
         StringBuilder builder = new StringBuilder();
-        builder.append("\n @Override public ContentValues entityToValues(")
+        builder.append("    @Override public ContentValues entityToValues(")
                 .append(entityClassName)
-                .append(" entity){\n ContentValues values=new ContentValues();\n");
+                .append(" entity) {\n        ContentValues values=new ContentValues();\n");
 
         for (ColumnInfo columnInfo : columnInfoMap.values()) {
+            builder.append("        ");
             builder.append(columnInfo.brewEntityToValues("entity", "values"));
             builder.append("\n");
         }
-        builder.append("  return values;\n}\n");
+        builder.append("        return values;\n    }\n");
         return builder.toString();
     }
 
     public String brewGetIndentityName() {
         StringBuilder builder = new StringBuilder();
-        builder.append("\n");
-        builder.append(" @Override ");
-        builder.append("public String getIndentityName(){\n");
+        builder.append("    @Override public String getIndentityName() { ");
         builder.append("    return \"");
         builder.append(primaryKeyColumnName);
-        builder.append("\";\n}\n");
+        builder.append("\"; }\n");
         return builder.toString();
     }
 
     public String brewGetIndentity() {
         StringBuilder builder = new StringBuilder();
-        builder.append("\n");
-        builder.append(" @Override ");
-        builder.append("public long getIndentity(");
-        builder.append(entityClassName).append(" entity){\n");
-        builder.append("    return entity.");
-        builder.append(primaryKeyFieldName).append(";\n}\n");
+        builder.append("    @Override public long getIndentity(");
+        builder.append(entityClassName).append(" entity) { return entity.");
+        builder.append(primaryKeyFieldName).append("; }\n");
 
         return builder.toString();
     }

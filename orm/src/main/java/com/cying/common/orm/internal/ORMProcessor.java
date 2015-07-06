@@ -113,7 +113,7 @@ public final class ORMProcessor extends AbstractProcessor {
                 error(element, "already exists table with name of %s", tableName);
                 continue;
             } else {
-                String targetType = element.getQualifiedName().toString();
+                String targetType = element.getSimpleName().toString();
                 String classPackage = getPackageName(element);
                 String className = getClassName(element, classPackage) + SUFFIX;
                 tableInfo = new TableInfo(tableName, classPackage, targetType, className);

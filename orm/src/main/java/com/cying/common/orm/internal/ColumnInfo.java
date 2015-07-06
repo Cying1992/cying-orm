@@ -278,8 +278,8 @@ public class ColumnInfo {
         builder.append(columnName);
         builder.append(" ");
         builder.append(columnType);
-        builder.append(columnNotNull ? " NOT NULL " : " ");
-        builder.append(columnUnique ? " UNIQUE " : " ");
+        builder.append(columnNotNull ? " NOT NULL" : "");
+        builder.append(columnUnique ? " UNIQUE " : "");
         columnSQL = builder.toString();
     }
 
@@ -301,7 +301,7 @@ public class ColumnInfo {
 
     public String brewCursorToEntity(String cursorParamName, String entityParamName) {
 
-        return  String.format("     %s.%s=%s%s.get%s(%s.getColumnIndex(\"%s\"))%s;",
+        return  String.format("%s.%s=%s%s.get%s(%s.getColumnIndex(\"%s\"))%s;",
                 entityParamName,
                 fieldName,
                 beforeConvertCursor,
@@ -313,7 +313,7 @@ public class ColumnInfo {
     }
 
     public String brewEntityToValues(String entityParamName, String valuesParamName) {
-        return  String.format("   %s.put(\"%s\",%s%s.%s%s);",
+        return  String.format("%s.put(\"%s\",%s%s.%s%s);",
                 valuesParamName,
                 columnName,
                 beforeConvertValues,
