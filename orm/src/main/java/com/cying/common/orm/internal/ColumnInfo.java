@@ -13,12 +13,6 @@ import javax.lang.model.element.VariableElement;
  */
 public class ColumnInfo {
 
-    static final String INTEGER = "INTEGER";
-    static final String INTEGER_NULL = "INTEGER NULL";
-    static final String BLOB = "BLOB";
-    static final String FLOAT = "FLOAT";
-    static final String TEXT = "TEXT";
-
     enum ColumnType {
         INTEGER("INTEGER"),
         BLOB("BLOB"),
@@ -147,11 +141,7 @@ public class ColumnInfo {
 
     private ColumnType columnType;
 
-    private VariableElement entityField;
-
     private PrefixType cursorType;
-
-    private PrefixType valuesType;
 
     private boolean columnNotNull, columnUnique;
 

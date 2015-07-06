@@ -22,6 +22,14 @@
                     <compilerArgument>-proc:none</compilerArgument>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <excludePackageNames>com.cying.common.orm.internal.*</excludePackageNames>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

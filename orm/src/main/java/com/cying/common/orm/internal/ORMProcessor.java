@@ -2,10 +2,8 @@ package com.cying.common.orm.internal;
 
 import com.cying.common.orm.*;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.*;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -30,7 +28,7 @@ import static javax.tools.Diagnostic.Kind.ERROR;
  * Date: 15-7-3
  * Time: 下午10:20
  */
-
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public final class ORMProcessor extends AbstractProcessor {
     public static final String SUFFIX = "$$Dao";
     public static final String ANDROID_PREFIX = "android.";
@@ -48,6 +46,11 @@ public final class ORMProcessor extends AbstractProcessor {
         elementUtils = env.getElementUtils();
         typeUtils = env.getTypeUtils();
         filer = env.getFiler();
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return super.getSupportedSourceVersion();
     }
 
     @Override
@@ -234,62 +237,32 @@ public final class ORMProcessor extends AbstractProcessor {
     }
 
     private boolean isBindingInWrongPackage(Class<? extends Annotation> annotationClass,
-                                            Element element) {
-        //TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
-        String qualifiedName = element.getSimpleName().toString();
+                                            TypeElement element) {
 
-        if (qualifiedName.startsWith(ANDROID_PREFIX)) {
-            error(element, "@%s-annotated class incorrectly in Android framework package. (%s)",
-                    annotationClass.getSimpleName(), qualifiedName);
-            return true;
-        }
-        if (qualifiedName.startsWith(JAVA_PREFIX)) {
-            error(element, "@%s-annotated class incorrectly in Java framework package. (%s)",
-                    annotationClass.getSimpleName(), qualifiedName);
-            return true;
-        }
+        TypeMirror superMirrow=element.getSuperclass();
+            if( superMirrow instanceof NoType) return false;
+        Element superElement=typeUtils.asElement(superMirrow);
 
-        return false;
-    }
 
-    static boolean isSubtypeOfType(TypeMirror typeMirror, String otherType) {
-        if (otherType.equals(typeMirror.toString())) {
-            return true;
-        }
-        if (typeMirror.getKind() != TypeKind.DECLARED) {
-            return false;
-        }
-        DeclaredType declaredType = (DeclaredType) typeMirror;
-        List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
-        if (typeArguments.size() > 0) {
-            StringBuilder typeString = new StringBuilder(declaredType.asElement().toString());
-            typeString.append('<');
-            for (int i = 0; i < typeArguments.size(); i++) {
-                if (i > 0) {
-                    typeString.append(',');
-                }
-                typeString.append('?');
-            }
-            typeString.append('>');
-            if (typeString.toString().equals(otherType)) {
+        if(superElement instanceof TypeElement){
+            String qualifiedName = ((TypeElement)superElement).getQualifiedName().toString();
+            if(Object.class.getCanonicalName().equals(qualifiedName)) return false;
+
+            if (qualifiedName.startsWith(ANDROID_PREFIX)) {
+                error(element, "@%s-annotated class incorrectly extends Android framework class. (%s)",
+                        annotationClass.getSimpleName(), qualifiedName);
                 return true;
             }
-        }
-        Element element = declaredType.asElement();
-        if (!(element instanceof TypeElement)) {
-            return false;
-        }
-        TypeElement typeElement = (TypeElement) element;
-        TypeMirror superType = typeElement.getSuperclass();
-        if (isSubtypeOfType(superType, otherType)) {
-            return true;
-        }
-        for (TypeMirror interfaceType : typeElement.getInterfaces()) {
-            if (isSubtypeOfType(interfaceType, otherType)) {
+            if (qualifiedName.startsWith(JAVA_PREFIX)) {
+                error(element, "@%s-annotated class incorrectly extends Java framework class. (%s)",
+                        annotationClass.getSimpleName(), qualifiedName);
                 return true;
             }
+
+            return isBindingInWrongPackage(annotationClass,(TypeElement)superElement);
+        } else{
+            return false;
         }
-        return false;
     }
 
 }

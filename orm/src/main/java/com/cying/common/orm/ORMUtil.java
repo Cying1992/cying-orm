@@ -151,7 +151,8 @@ public class ORMUtil {
         }
     }
 
-    static <T> BaseDao<T> findDao(Class<T> entityClass) throws IllegalAccessException, InstantiationException, ClassNotFoundException {
+    @SuppressWarnings("unchecked")
+    static <T> BaseDao<T> findDao(Class<T> entityClass) throws IllegalAccessException, InstantiationException, ClassNotFoundException,ClassCastException {
         BaseDao<T> baseDao;
         if (baseDaoMap.containsKey(entityClass)) {
             baseDao = (BaseDao<T>) baseDaoMap.get(entityClass);
@@ -161,17 +162,10 @@ public class ORMUtil {
                 if (debug) Log.d(TAG, "MISS: Reached framework class. Abandoning search.");
                 return null;
             }
-            try {
                 Class<?> entityDaoClass = Class.forName(clsName + ORMProcessor.SUFFIX);
                 baseDao = (BaseDao<T>) entityDaoClass.newInstance();
                 baseDaoMap.put(entityClass, baseDao);
                 if (debug) Log.d(TAG, "HIT: Loaded dao class.");
-
-            } catch (ClassNotFoundException e) {
-                if (debug) Log.d(TAG, "Not found");
-                throw e;
-            }
-
         }
         return baseDao;
     }
