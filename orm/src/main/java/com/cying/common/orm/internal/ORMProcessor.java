@@ -136,9 +136,7 @@ public final class ORMProcessor extends AbstractProcessor {
     }
 
     private void addColumnInfo(TableInfo tableInfo, VariableElement fieldElement) {
-        if (isInaccessibleViaGeneratedCode(Column.class, "fields", fieldElement)) {
-            return;
-        }
+
         String fieldName = fieldElement.getSimpleName().toString();
         note("fieldName=%s", fieldName);
 
@@ -146,6 +144,9 @@ public final class ORMProcessor extends AbstractProcessor {
         Key key = fieldElement.getAnnotation(Key.class);
         if (ignore == null) {
             try {
+                if (isInaccessibleViaGeneratedCode(Column.class, "fields", fieldElement)) {
+                    return;
+                }
 
                 TypeMirror typeMirror = fieldElement.asType();
 

@@ -11,9 +11,8 @@ import dalvik.system.DexFile;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.cying.common.orm.internal.ORMProcessor.*;
@@ -34,8 +33,13 @@ public class ORMUtil {
     static SQLiteDatabase sqLiteDatabase;
     static AtomicInteger lock = new AtomicInteger();
 
-    static Map<Class<?>, BaseDao<?>> baseDaoMap = new LinkedHashMap<>();
-    static final StringBuilder sqlBuilder = new StringBuilder("ppp:");
+    static final Map<Class<?>, BaseDao<?>> baseDaoMap = new ConcurrentHashMap<>();
+
+    static final Set<String> daoClassNameSet=new LinkedHashSet<>();
+
+
+    static final StringBuilder sqlBuilder = new StringBuilder();
+
     private static boolean debug = false;
 
     private static final String TAG = "Cying-ORM";
@@ -71,7 +75,7 @@ public class ORMUtil {
                         classFilePath = filePath.getPath();
                         if (classFilePath.endsWith(suffix)) {
                             classFilePath = classFilePath.substring(classFilePath.indexOf(packagePath), classFilePath.lastIndexOf(".class")).replace(seperator, ".");
-                            System.out.println("path=" + classFilePath);
+                            daoClassNameSet.add(classFilePath);
                             Class.forName(classFilePath);
                         }
                     }
@@ -89,7 +93,10 @@ public class ORMUtil {
                 Enumeration<String> dexEntries = dexfile.entries();
                 while (dexEntries.hasMoreElements()) {
                     String className = dexEntries.nextElement();
-                    if (className.endsWith(SUFFIX)) Class.forName(className);
+                    if (className.endsWith(SUFFIX)) {
+                        daoClassNameSet.add(className);
+                        Class.forName(className);
+                    }
                 }
             } catch (NullPointerException e) {
                 loadAllEntityClass(packageName);
@@ -125,7 +132,7 @@ public class ORMUtil {
         }
     }
 
-    public static void putSQL(String sql) {
+    static void putSQL(String sql) {
         sqlBuilder.append(sql);
     }
 
@@ -135,6 +142,9 @@ public class ORMUtil {
 
     public static <T> BaseDao<T> getDao(Class<T> entityClass) {
         try {
+            if(!daoClassNameSet.contains(entityClass.getName()+SUFFIX)){
+                 throw new Exception("Unable to find dao class in the given packages for "+entityClass.getName());
+            }
             return findDao(entityClass);
         } catch (Exception e) {
             throw new RuntimeException("Unable to find dao class for " + entityClass.getName(), e);

@@ -10,7 +10,5 @@ public interface Indentity {
 
     void setIndentity(long id);
 
-    default String getIndentityName() {
-        return "id";
-    }
+    String getIndentityName();
 }

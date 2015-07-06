@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="cying-orm">
+    <output-path>$PROJECT_DIR$/out/artifacts/cying_orm</output-path>
+    <root id="archive" name="cying-orm.jar">
+      <element id="module-output" name="orm" />
+    </root>
+  </artifact>
+</component>

@@ -88,7 +88,7 @@ public class TableInfo {
                 builder.append(columnInfo.getColumnSQL());
             }
 
-            builder.append(" ) ");
+            builder.append(" );");
             createTableSQL = builder.toString();
         }
         return createTableSQL;
@@ -122,7 +122,7 @@ public class TableInfo {
         StringBuilder builder = new StringBuilder();
         builder.append("\n");
         builder.append("    private static  String SQL=\"")
-                .append(getCreateTableSQL()).append(";\";\n");
+                .append(getCreateTableSQL()).append("\";\n");
         builder.append("    static {\n  saveSQL(SQL);\n}\n");
 
 //        builder.append(" @Override ");
