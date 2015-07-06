@@ -29,14 +29,13 @@ public class ORMUtil {
         void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion);
     }
 
-    static SQLiteOpenHelper sqLiteOpenHelper;
-    static SQLiteDatabase sqLiteDatabase;
-    static AtomicInteger lock = new AtomicInteger();
+    private static SQLiteOpenHelper sqLiteOpenHelper;
+    private static SQLiteDatabase sqLiteDatabase;
+    private static AtomicInteger lock = new AtomicInteger();
 
-    static final Map<Class<?>, BaseDao<?>> baseDaoMap = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, BaseDao<?>> baseDaoMap = new ConcurrentHashMap<>();
 
     static final Set<String> daoClassNameSet=new LinkedHashSet<>();
-
 
     static final StringBuilder sqlBuilder = new StringBuilder();
 
@@ -56,8 +55,7 @@ public class ORMUtil {
         return context.getPackageManager().getApplicationInfo(context.getPackageName(), 0).sourceDir;
     }
 
-
-    public static void loadAllEntityClass(String packageName) throws IOException, ClassNotFoundException {
+    private static void loadAllEntityClass(String packageName) throws IOException, ClassNotFoundException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         Enumeration<URL> urls = classLoader.getResources("");
         while (urls.hasMoreElements()) {
@@ -84,7 +82,7 @@ public class ORMUtil {
         }
     }
 
-    public static void loadAllEntityClass(Context context, String... packageNames) throws PackageManager.NameNotFoundException, IOException, ClassNotFoundException {
+    private static void loadAllEntityClass(Context context, String... packageNames) throws PackageManager.NameNotFoundException, IOException, ClassNotFoundException {
         for (String packageName : packageNames) {
             String path = getSourcePath(context);
             DexFile dexfile = null;
@@ -132,11 +130,11 @@ public class ORMUtil {
         }
     }
 
-    static void putSQL(String sql) {
+    static void saveCreateTableSQL(String sql) {
         sqlBuilder.append(sql);
     }
 
-    public static String getTotalSQL() {
+    public static String getAllTableSQL() {
         return sqlBuilder.toString();
     }
 
