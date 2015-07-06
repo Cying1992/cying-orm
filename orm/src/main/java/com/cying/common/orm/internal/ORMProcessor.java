@@ -68,7 +68,7 @@ public final class ORMProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-        note("Begin generate cying-orm code: ");
+       // note("Begin generate cying-orm code: ");
         try {
             Map<TypeElement, TableInfo> tableInfoMap = findTableInfo(roundEnv);
             for (Map.Entry<TypeElement, TableInfo> entry : tableInfoMap.entrySet()) {
@@ -141,8 +141,6 @@ public final class ORMProcessor extends AbstractProcessor {
     private void addColumnInfo(TableInfo tableInfo, VariableElement fieldElement) {
 
         String fieldName = fieldElement.getSimpleName().toString();
-        note("fieldName=%s", fieldName);
-
         Ignore ignore = fieldElement.getAnnotation(Ignore.class);
         Key key = fieldElement.getAnnotation(Key.class);
         if (ignore == null) {
@@ -152,8 +150,6 @@ public final class ORMProcessor extends AbstractProcessor {
                 }
 
                 TypeMirror typeMirror = fieldElement.asType();
-
-
                 //the  primary key column
                 if (key != null) {
                     if (tableInfo.hasPrimaryKey()) {
@@ -173,9 +169,6 @@ public final class ORMProcessor extends AbstractProcessor {
 
                 //other columns except the primary key
                 String fieldClassName;
-                note(byte[].class.getCanonicalName());
-
-
                 if (typeMirror instanceof PrimitiveType) {
                     fieldClassName = typeMirror.getKind().name().toLowerCase();
 
@@ -191,7 +184,6 @@ public final class ORMProcessor extends AbstractProcessor {
 
                 tableInfo.addColumn(new ColumnInfo(fieldElement, fieldClassName));
             } catch (Exception e) {
-                //e.printStackTrace();
                 error(fieldElement, " failed:%s ", e);
             }
         }
