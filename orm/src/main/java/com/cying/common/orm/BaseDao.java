@@ -33,11 +33,13 @@ public abstract class BaseDao<T> {
         ORMUtil.close();
     }
 
-    public abstract T cursorToEntity(Cursor cursor);
+    protected abstract T cursorToEntity(Cursor cursor);
 
-    public abstract ContentValues entityToValues(T entity);
+    protected abstract ContentValues entityToValues(T entity);
 
     public abstract String getTableName();
+
+    public abstract String getTableSQL();
 
     public abstract String getIndentityName();
 
@@ -192,7 +194,7 @@ public abstract class BaseDao<T> {
 
     public long count(String whereClause, String... whereArgs) {
         long result = -1;
-        String filter = (whereClause == null || whereClause.trim().isEmpty()) ? " where " + whereClause : "";
+        String filter = (whereClause == null || whereClause.trim().isEmpty()) ? "":" where " + whereClause;
         SQLiteStatement sqliteStatement;
         try {
             sqliteStatement = getDatabase().compileStatement("SELECT count(1) FROM " + getTableName() + filter);

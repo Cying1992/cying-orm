@@ -111,6 +111,7 @@ public class TableInfo {
         builder.append(brewCursorToEntity());
         builder.append(brewEntityToValues());
         builder.append(brewGetTableName())
+                .append(brewGetTableSQL())
                 .append(brewGetIndentityName())
                 .append(brewGetIndentity());
         builder.append("}\n");
@@ -134,6 +135,10 @@ public class TableInfo {
         return builder.toString();
     }
 
+    String brewGetTableSQL(){
+        return "    @Override public String getTableSQL() { return SQL; }\n";
+    }
+
     String brewGetTableName() {
         StringBuilder builder = new StringBuilder();
         builder.append("    @Override public String getTableName() { return \"");
@@ -144,7 +149,7 @@ public class TableInfo {
 
     String brewCursorToEntity() {
         StringBuilder builder = new StringBuilder();
-        builder.append("    @Override public ")
+        builder.append("    @Override protected ")
                 .append(entityClassName)
                 .append(" cursorToEntity(Cursor cursor) {\n        ")
                 .append(entityClassName)
@@ -170,7 +175,7 @@ public class TableInfo {
 
     String brewEntityToValues() {
         StringBuilder builder = new StringBuilder();
-        builder.append("    @Override public ContentValues entityToValues(")
+        builder.append("    @Override protected ContentValues entityToValues(")
                 .append(entityClassName)
                 .append(" entity) {\n        ContentValues values=new ContentValues();\n");
 
