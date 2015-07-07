@@ -16,6 +16,7 @@ import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.util.*;
 
+import static com.cying.common.orm.internal.SqliteKeyword.isKeyWord;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.STATIC;
 import static javax.tools.Diagnostic.Kind.ERROR;
@@ -65,7 +66,6 @@ public final class ORMProcessor extends AbstractProcessor {
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-		// note("Begin generate cying-orm code: ");
 		try {
 			Map<TypeElement, TableInfo> tableInfoMap = findTableInfo(roundEnv);
 			for (Map.Entry<TypeElement, TableInfo> entry : tableInfoMap.entrySet()) {
@@ -93,35 +93,16 @@ public final class ORMProcessor extends AbstractProcessor {
 		return false;
 	}
 
-	private Map<TypeElement, TableInfo> findTableInfo(RoundEnvironment roundEnv) {
+	private Map<TypeElement, TableInfo> findTableInfo(RoundEnvironment roundEnv) throws Exception{
 		Map<TypeElement, TableInfo> tableInfoMap = new LinkedHashMap<>();
 		TableInfo tableInfo;
 		for (Element normalElement : roundEnv.getElementsAnnotatedWith(Table.class)) {
-
 			TypeElement element = (TypeElement) normalElement;
-			if (isNotClassType(Table.class,element)|| isClassInaccessibleViaGeneratedCode(Table.class, "class", element) || isBindingInWrongPackage(Table.class, element)) {
+			if (isNotClassType(Table.class, element) || isClassInaccessibleViaGeneratedCode(Table.class, "class", element) || isBindingInWrongPackage(Table.class, element)) {
 				return tableInfoMap;
 			}
-			String tableName = element.getAnnotation(Table.class).value().toLowerCase();
-			if (tableName.isEmpty()) {
-				tableName = element.getSimpleName().toString().toLowerCase();
-			}
-			if (tableInfoMap.containsKey(element)) {
-				error(element, "already exists table with name of %s", tableName);
-				continue;
-			} else {
-
-				String classPackage = getPackageName(element);
-				String entityClassName = getClassName(element, classPackage);
-				String daoClassName =  entityClassName.replace(".","$")+ SUFFIX;
-				tableInfo = new TableInfo(tableName, classPackage, entityClassName, daoClassName);
-				tableInfoMap.put(element, tableInfo);
-			}
-
-			for (VariableElement fieldElement : ElementFilter.fieldsIn(element.getEnclosedElements())) {
-
-				addColumnInfo(tableInfo, fieldElement);
-			}
+			tableInfo = createTableInfo(tableInfoMap, element);
+			addColumnInfo(tableInfo, ElementFilter.fieldsIn(element.getEnclosedElements()));
 
 			if (!tableInfo.hasPrimaryKey()) {
 				error(element, "%s don't have primary key", tableInfo.getTableName());
@@ -130,57 +111,57 @@ public final class ORMProcessor extends AbstractProcessor {
 		return tableInfoMap;
 	}
 
+	private TableInfo createTableInfo(Map<TypeElement, TableInfo> tableInfoMap, TypeElement element) {
+		TableInfo tableInfo = null;
+		String tableName = element.getAnnotation(Table.class).value().toLowerCase();
+		if (tableName.isEmpty()) {
+			tableName = element.getSimpleName().toString().toLowerCase();
+		}
+		if (tableInfoMap.containsKey(element)) {
+			error(element, "already exists table with name of %s", tableName);
+		} else {
+
+			String classPackage = getPackageName(element);
+			String entityClassName = getClassName(element, classPackage);
+			String daoClassName = entityClassName.replace(".", "$") + SUFFIX;
+			tableInfo = new TableInfo(tableName, classPackage, entityClassName, daoClassName);
+			tableInfoMap.put(element, tableInfo);
+		}
+		return tableInfo;
+	}
 
 	private static String getClassName(TypeElement type, String packageName) {
 		int packageLen = packageName.length() + 1;
 		return type.getQualifiedName().toString().substring(packageLen);
 	}
 
-	private void addColumnInfo(TableInfo tableInfo, VariableElement fieldElement) {
+	private void addColumnInfo(TableInfo tableInfo, List<VariableElement> fieldElementList) {
+		for (VariableElement fieldElement : fieldElementList) {
+			addColumnInfo(tableInfo, fieldElement);
+		}
+	}
 
-		String fieldName = fieldElement.getSimpleName().toString();
-		Ignore ignore = fieldElement.getAnnotation(Ignore.class);
-		Key key = fieldElement.getAnnotation(Key.class);
-		if (ignore == null) {
+	private void addColumnInfo(TableInfo tableInfo, VariableElement fieldElement) {
+		if (!isAnnotationPresent(Ignore.class, fieldElement)) {
 			try {
 				if (isFieldInaccessibleViaGeneratedCode(Column.class, "fields", fieldElement)) {
 					return;
 				}
 
-				TypeMirror typeMirror = fieldElement.asType();
-				//the  primary key column
-				if (key != null) {
-					if (tableInfo.hasPrimaryKey()) {
-						error(fieldElement, "@Class (%s) :@Field (%s) :table '%s' already has the primary key '%s'",
-								tableInfo.getEntityClassName(), fieldName,
-								tableInfo.getTableName(), tableInfo.getPrimaryKeyColumnName());
-					} else {
-						tableInfo.setPrimaryKeyColumnName(fieldName.toLowerCase());
-						tableInfo.setPrimaryKeyFieldName(fieldName);
-						if (typeMirror.getKind() != TypeKind.LONG) {
-							error(fieldElement, "@Class (%s) :@Field (%s) :the primary key must be long or Long",
-									tableInfo.getEntityClassName(), tableInfo.getPrimaryKeyFieldName());
-						}
-					}
-					return;
+				String fieldClassName = getFieldClassName(fieldElement);
+				ColumnInfo columnInfo = new ColumnInfo(fieldElement, fieldClassName);
+
+				//check whether the column name is sqlite keyword
+				if (isKeyWord(columnInfo.getColumnName())) {
+					error(fieldElement, "%s.%s column  must not be sqlite keyword '%s'", tableInfo.getEntityClassName(), columnInfo.getFieldName(), columnInfo.getColumnName());
 				}
 
-				//other columns except the primary key
-				String fieldClassName;
-				if (typeMirror instanceof PrimitiveType) {
-					fieldClassName = typeMirror.getKind().name().toLowerCase();
-
-				} else if (typeMirror instanceof DeclaredType) {
-					TypeElement fieldType = (TypeElement) typeUtils.asElement(fieldElement.asType());
-					fieldClassName = fieldType.getQualifiedName().toString();
-				} else if (typeMirror instanceof ArrayType && ((ArrayType) typeMirror).getComponentType().getKind() == TypeKind.BYTE) {
-					fieldClassName = byte[].class.getCanonicalName();
-
-				} else {
-					throw new IllegalArgumentException("not support this type which field name is " + fieldName);
+				//set  primary key column
+				if (isAnnotationPresent(Key.class, fieldElement)) {
+					setPrimaryKey(tableInfo, fieldElement, fieldClassName);
 				}
 
-				tableInfo.addColumn(new ColumnInfo(fieldElement, fieldClassName));
+				tableInfo.addColumn(columnInfo);
 			} catch (Exception e) {
 				error(fieldElement, " failed:%s ", e);
 			}
@@ -188,9 +169,49 @@ public final class ORMProcessor extends AbstractProcessor {
 
 	}
 
+	private void setPrimaryKey(TableInfo tableInfo, Element fieldElement, String fieldClassName) {
+		TypeMirror typeMirror = fieldElement.asType();
+		String fieldName = fieldElement.getSimpleName().toString();
+		if (tableInfo.hasPrimaryKey()) {
+			error(fieldElement, "@Class (%s) :@Field (%s) :table '%s' already has the primary key '%s'",
+					tableInfo.getEntityClassName(), fieldName,
+					tableInfo.getTableName(), tableInfo.getPrimaryKeyColumnName());
+		} else {
+			tableInfo.setPrimaryKeyColumnName(fieldName.toLowerCase());
+			tableInfo.setPrimaryKeyFieldName(fieldName);
+			if (typeMirror.getKind() != TypeKind.LONG && !fieldClassName.equals(Long.class.getCanonicalName())) {
+				error(fieldElement, "@Class (%s) :@Field (%s) :the primary key must be long or Long",
+						tableInfo.getEntityClassName(), tableInfo.getPrimaryKeyFieldName());
+			}
+		}
+
+	}
+
+	private String getFieldClassName(Element fieldElement) {
+		TypeMirror typeMirror = fieldElement.asType();
+		String fieldClassName;
+		if (typeMirror instanceof PrimitiveType) {
+			fieldClassName = typeMirror.getKind().name().toLowerCase();
+
+		} else if (typeMirror instanceof DeclaredType) {
+			TypeElement fieldType = (TypeElement) typeUtils.asElement(fieldElement.asType());
+			fieldClassName = fieldType.getQualifiedName().toString();
+		} else if (typeMirror instanceof ArrayType && ((ArrayType) typeMirror).getComponentType().getKind() == TypeKind.BYTE) {
+			fieldClassName = byte[].class.getCanonicalName();
+
+		} else {
+			throw new IllegalArgumentException("not support this type which field name is " + fieldElement.getSimpleName());
+		}
+		return fieldClassName;
+	}
+
 	private String getPackageName(TypeElement type) {
 
 		return elementUtils.getPackageOf(type).getQualifiedName().toString();
+	}
+
+	private static boolean isAnnotationPresent(Class<? extends Annotation> annotationClass, Element element) {
+		return element.getAnnotation(annotationClass) != null;
 	}
 
 	private void note(String message, Object... args) {
@@ -255,28 +276,28 @@ public final class ORMProcessor extends AbstractProcessor {
 	}
 
 	private boolean isClassInaccessibleViaGeneratedCode(Class<? extends Annotation> annotationClass,
-	                                                    String targetThing, Element element){
-		Element enclosingElement=element.getEnclosingElement();
-		ElementKind enclosingElementKind=enclosingElement.getKind();
+	                                                    String targetThing, Element element) {
+		Element enclosingElement = element.getEnclosingElement();
+		ElementKind enclosingElementKind = enclosingElement.getKind();
 
-		if(ElementKind.PACKAGE.equals(enclosingElementKind)){
-			 return false;
-		} else if(enclosingElementKind.isClass()||enclosingElementKind.isInterface()){
+		if (ElementKind.PACKAGE.equals(enclosingElementKind)) {
+			return false;
+		} else if (enclosingElementKind.isClass() || enclosingElementKind.isInterface()) {
 			Set<Modifier> selfModifiers = element.getModifiers();
-			if(selfModifiers.contains(PRIVATE)||!selfModifiers.contains(STATIC)) {
-				error(element,"%s %s must be static and not be private because the nested table entity class is  inaccessible via generated code.",targetThing,element.getSimpleName());
+			if (selfModifiers.contains(PRIVATE) || !selfModifiers.contains(STATIC)) {
+				error(element, "%s %s must be static and not be private because the nested table entity class is  inaccessible via generated code.", targetThing, element.getSimpleName());
 				return true;
 			}
 			return isClassInaccessibleViaGeneratedCode(annotationClass, targetThing, enclosingElement);
-		}else {
-			error(element,"unexpected element kind of %s",enclosingElementKind);
+		} else {
+			error(element, "unexpected element kind of %s", enclosingElementKind);
 			return true;
 		}
 	}
 
-	private boolean isNotClassType(Class<? extends Annotation> annotationClass,Element element){
-		if(!ElementKind.CLASS.equals(element.getKind())){
-			error(element,"%s-annotated is not class type",annotationClass.getSimpleName());
+	private boolean isNotClassType(Class<? extends Annotation> annotationClass, Element element) {
+		if (!ElementKind.CLASS.equals(element.getKind())) {
+			error(element, "%s-annotated is not class type", annotationClass.getSimpleName());
 			return true;
 		}
 		return false;

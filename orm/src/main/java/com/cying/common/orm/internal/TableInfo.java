@@ -77,11 +77,11 @@ public class TableInfo {
     public String getCreateTableSQL() {
         if (createTableSQL == null) {
             StringBuilder builder = new StringBuilder();
-            builder.append("CREATE TABLE ");
+            builder.append("CREATE TABLE [");
             builder.append(tableName);
-            builder.append(" (");
+            builder.append("] ([");
             builder.append(primaryKeyColumnName);
-            builder.append(" INTEGER PRIMARY KEY AUTOINCREMENT");
+            builder.append("] INTEGER PRIMARY KEY AUTOINCREMENT");
 
             for (ColumnInfo columnInfo : columnInfoMap.values()) {
                 builder.append(",");
@@ -178,6 +178,12 @@ public class TableInfo {
         builder.append("    @Override protected ContentValues entityToValues(")
                 .append(entityClassName)
                 .append(" entity) {\n        ContentValues values=new ContentValues();\n");
+
+        //primary key
+        builder.append("        values.put(\"")
+                .append(primaryKeyColumnName)
+                .append("\",entity.")
+                .append(primaryKeyFieldName).append(");\n");
 
         for (ColumnInfo columnInfo : columnInfoMap.values()) {
             builder.append("        ");

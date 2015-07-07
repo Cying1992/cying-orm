@@ -124,8 +124,8 @@ public abstract class BaseDao<T> {
      * @return
      */
     public List<T> listPage(int count, int pageIndex, String orderBy, String whereClause, String... whereArgs) {
-        if (count < 1 || pageIndex < 1) {
-            return find(whereClause, whereArgs, null, orderBy, null);
+        if (count < 1 || pageIndex < 0) {
+            throw new IllegalArgumentException("count and pageIndex can not be less than 1");
         }
         long offset = pageIndex * count;
         String limit = offset + "," + count;

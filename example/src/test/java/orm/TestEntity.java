@@ -11,8 +11,13 @@ import com.cying.common.orm.Table;
 @Table
 public class TestEntity {
 	@Key
-	long id;
+	Long id;
 	String name;
+	int inde;
+	double num;
+	float phone;
+	boolean bmm;
+
 
 	@Table
 	static class InnerEntity{

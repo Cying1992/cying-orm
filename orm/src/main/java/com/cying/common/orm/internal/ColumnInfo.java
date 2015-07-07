@@ -275,8 +275,8 @@ public class ColumnInfo {
 
     private void initColumnSQL() {
         StringBuilder builder = new StringBuilder();
-        builder.append(columnName);
-        builder.append(" ");
+        builder.append("[").append(columnName);
+        builder.append("] ");
         builder.append(columnType);
         builder.append(columnNotNull ? " NOT NULL" : "");
         builder.append(columnUnique ? " UNIQUE " : "");

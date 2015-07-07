@@ -10,7 +10,10 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.Iterator;
+
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.failBecauseExceptionWasNotThrown;
 
 /**
  * User: Cying
@@ -47,12 +50,13 @@ public class ORMUtilTest {
 				.isEqualToIgnoringCase("create table innerentity (innerid integer primary key autoincrement,innername TEXT);");
 	}
 
-	@Test
+	//@Test
 	public void testOuter(){
-
 		BaseDao<TestEntity> dao = ORMUtil.getDao(TestEntity.class);
 		TestEntity entity = new TestEntity();
 		entity.name="shit";
+
+
 
 		ContentValues values = new ContentValues();
 		values.put("name", entity.name);
@@ -65,6 +69,12 @@ public class ORMUtilTest {
 
 		entity.id=dao.save(entity);
 		assertThat(entity.id).isGreaterThan(0);
+		assertThat(dao.findById(entity.id)).isEqualsToByComparingFields(entity);
+		Iterator<TestEntity> iterator=dao.findAsIterator(null);
+		while(iterator.hasNext()){
+			assertThat(iterator.next()).isEqualsToByComparingFields(entity);
+		}
+
 		assertThat(dao.count()).isEqualTo(1);
 		assertThat(dao.first()).isEqualsToByComparingFields(entity);
 		assertThat(dao.last()).isEqualsToByComparingFields(entity);
@@ -73,8 +83,42 @@ public class ORMUtilTest {
 		assertThat(dao.delete(entity)).isFalse();
 		assertThat(dao.first()).isNull();
 		assertThat(dao.last()).isNull();
+	}
+
+	@Test
+	public void  testCurd(){
+
+		BaseDao<TestEntity> dao=ORMUtil.getDao(TestEntity.class);
+		TestEntity entity1=new TestEntity();
+		entity1.name="name";
+		entity1.bmm=true;
+		entity1.inde=111;
+		entity1.num=5.6;
+		entity1.phone=88.8f;
 
 
+		//insert
+		long id=dao.save(entity1);
+		assertThat(id).isGreaterThan(0);
+
+		assertThat(dao.findById(id)).isLenientEqualsToByIgnoringFields(entity1,"id");
+		assertThat(dao.first()).isLenientEqualsToByIgnoringFields(entity1, "id");
+		assertThat(dao.last()).isLenientEqualsToByIgnoringFields(entity1, "id");
+
+		assertThat(dao.count()).isEqualTo(1);
+		//assertThat(dao.listPage(0, 0)).isNull();
+		assertThat(dao.listPage(1, 0)).isNotNull().hasSize(1);
+		assertThat(dao.listPage(1,1)).isNotNull().isEmpty();
+
+		//update
+		entity1.id=id;
+		assertThat(dao.save(entity1)).isEqualTo(id);
+		assertThat(dao.count()).isEqualTo(1);
+		assertThat(dao.findById(id)).isEqualsToByComparingFields(entity1);
+		assertThat(dao.first()).isEqualsToByComparingFields(entity1);
+		assertThat(dao.last()).isEqualsToByComparingFields(entity1);
+		assertThat(dao.listPage(1, 0)).isNotNull().hasSize(1);
+		assertThat(dao.listPage(1,1)).isNotNull().isEmpty();
 
 	}
 
