@@ -1,7 +1,13 @@
 package orm;
 
-import com.cying.common.orm.Key;
-import com.cying.common.orm.Table;
+import android.app.Activity;
+import com.cying.common.orm.*;
+import orm.internal.EnumWrapper;
+
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * User: Cying
@@ -9,21 +15,46 @@ import com.cying.common.orm.Table;
  * Time: 23:02
  */
 @Table
-public class TestEntity {
+public class TestEntity{
+
 	@Key
 	Long id;
+
+	//@Column("id")
 	String name;
-	int inde;
-	double num;
-	float phone;
-	boolean bmm;
+
+	int a;
+	long b;
+	double c;
+	float d;
+
+	@NotNull(NullValueStrategy.DEFAULT)
+	Integer e;
+
+	@NotNull()
+	Double f;
+
+	Float g;
+	Date h;
+	Calendar i;
+	Timestamp j;
+	BigDecimal k;
+
+	MyEnum m;
+	byte[] n;
+	boolean o;
+	Boolean p;
 
 
 	@Table
-	static class InnerEntity{
+	static class InnerEntity {
 		@Key
 		long innerId;
 		String innerName;
 	}
 
+
+	 enum MyEnum{
+
+	}
 }

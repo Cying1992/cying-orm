@@ -1,9 +1,5 @@
 package com.cying.common.orm.internal;
 
-import java.io.*;
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * User: Cying
  * Date: 2015/7/7
@@ -31,12 +27,5 @@ public class SqliteKeyword {
 			"WITH", "WITHOUT"
 	};
 
-	static boolean isKeyWord(String word) {
-		if (word == null || word.isEmpty()) return false;
-		for (String keyword : keywords) {
-			if (keyword.equalsIgnoreCase(word)) return true;
-		}
-		return false;
-	}
 
 }

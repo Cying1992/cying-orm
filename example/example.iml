@@ -13,10 +13,10 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="orm" />
     <orderEntry type="library" scope="TEST" name="com.google.android:android:4.1.1.4" level="application" />
-    <orderEntry type="library" scope="TEST" name="com.google.android:support-v4:r7" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.google.testing.compile:compile-testing:0.7" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.google.truth:truth:0.27" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.squareup:fest-android:1.0.8" level="project" />
-    <orderEntry type="library" scope="TEST" name="org.robolectric:robolectric:2.4" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.google.android:support-v4:r7" level="application" />
+    <orderEntry type="library" scope="TEST" name="com.google.testing.compile:compile-testing:0.7" level="application" />
+    <orderEntry type="library" scope="TEST" name="com.google.truth:truth:0.27" level="application" />
+    <orderEntry type="library" scope="TEST" name="com.squareup:fest-android:1.0.8" level="application" />
+    <orderEntry type="library" scope="TEST" name="org.robolectric:robolectric:2.4" level="application" />
   </component>
 </module>

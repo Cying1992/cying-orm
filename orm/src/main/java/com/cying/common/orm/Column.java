@@ -13,9 +13,9 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @Retention(CLASS)
 @Target(FIELD)
 public @interface Column {
-    String value();
+	String value();
 
-    boolean unique() default false;
+	boolean unique() default false;
 
-    boolean notNull() default false;
+	boolean notNull() default false;
 }

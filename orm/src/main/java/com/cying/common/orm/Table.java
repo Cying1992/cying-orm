@@ -12,5 +12,5 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @Retention(CLASS)
 @Target(TYPE)
 public @interface Table {
-    String value() default "";
+	String value() default "";
 }
