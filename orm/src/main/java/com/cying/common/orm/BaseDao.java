@@ -94,7 +94,6 @@ public abstract class BaseDao<T> {
 		return timestamp == null ? 0 : timestamp.getTime();
 	}
 
-
 	protected abstract T cursorToEntity(Cursor cursor);
 
 	protected abstract ContentValues entityToValues(T entity);

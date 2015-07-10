@@ -121,7 +121,7 @@ public final class ORMProcessor extends AbstractProcessor {
 
 	static boolean isEnum(Element fieldElement) {
 		Element element = typeUtils.asElement(fieldElement.asType());
-		return element == null ? false : ElementKind.ENUM.equals(element.getKind());
+		return element != null && ElementKind.ENUM.equals(element.getKind());
 	}
 
 	static String getFieldClassNameOf(Element fieldElement) {
@@ -183,6 +183,11 @@ public final class ORMProcessor extends AbstractProcessor {
 
 	static boolean isBindingInWrongPackage(Class<? extends Annotation> annotationClass,
 	                                       TypeElement element) {
+		return false;
+	}
+
+	static boolean isExtendsWrongClass(Class<? extends Annotation> annotationClass,
+	                                   TypeElement element) {
 		TypeMirror superMirrow = element.getSuperclass();
 		if (superMirrow instanceof NoType) return false;
 		Element superElement = typeUtils.asElement(superMirrow);
@@ -208,6 +213,7 @@ public final class ORMProcessor extends AbstractProcessor {
 			return false;
 		}
 	}
+
 
 	static boolean isClassInaccessibleViaGeneratedCode(Element element) {
 		Element enclosingElement = element.getEnclosingElement();
