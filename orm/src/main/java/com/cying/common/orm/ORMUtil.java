@@ -26,8 +26,19 @@ import static com.cying.common.orm.internal.ORMProcessor.*;
  */
 public class ORMUtil {
 	public interface SQLiteCallback {
+		/**
+		 * @param sqLiteDatabase database
+		 * @param oldVersion     database oldVersion
+		 * @param newVersion     database newVersion
+		 */
 		void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion);
 
+		/**
+		 *
+		 * @param db  database
+		 * @param oldVersion  database oldVersion
+		 * @param newVersion  database newVersion
+		 */
 		void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion);
 	}
 

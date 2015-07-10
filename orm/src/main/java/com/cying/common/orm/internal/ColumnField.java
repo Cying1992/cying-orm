@@ -53,22 +53,24 @@ public class ColumnField {
 
 	private void prepareName() {
 		fieldName = entityFieldElement.getSimpleName().toString();
-		Column column = entityFieldElement.getAnnotation(Column.class);
-		if (column == null) {
-			columnName = fieldName.toLowerCase();
+
+		if (isAnnotationPresent(Column.class, entityFieldElement)) {
+			columnName = entityFieldElement.getAnnotation(Column.class).value().trim().toLowerCase();
+			if (columnName.isEmpty()) {
+				columnName = fieldName.toLowerCase();
+			}
 		} else {
-			columnName = column.value().toLowerCase();
-			columnNotNull = column.notNull();
-			columnUnique = column.unique();
+			columnName = fieldName.toLowerCase();
 		}
 
 		checkKeyWord(entityFieldElement, columnName, entityFieldElement.getEnclosingElement().getSimpleName().toString(), fieldName);
-
-
+		;
 		if (isAnnotationPresent(NotNull.class,entityFieldElement)) {
-			NotNull notNull = entityFieldElement.getAnnotation(NotNull.class);
 			columnNotNull = true;
-			nullValueStrategy=notNull.value();
+			nullValueStrategy = entityFieldElement.getAnnotation(NotNull.class).value();
+		} else {
+			columnNotNull = false;
+			nullValueStrategy = NullValueStrategy.NONE;
 		}
 
 		columnUnique = isAnnotationPresent(Unique.class, entityFieldElement);

@@ -1,8 +1,6 @@
 package com.cying.common.orm.internal;
 
-import com.cying.common.orm.Ignore;
-import com.cying.common.orm.Key;
-import com.cying.common.orm.Table;
+import com.cying.common.orm.*;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -105,14 +103,16 @@ public class TableClass {
 	private void prepareAllColumns(TypeElement entityElement) {
 
 		for (VariableElement fieldElement : ElementFilter.fieldsIn(entityElement.getEnclosedElements())) {
-			if (!isAnnotationPresent(Ignore.class, fieldElement) && !isFieldInaccessibleViaGeneratedCode(entityElement, fieldElement)) {
 				if (isAnnotationPresent(Key.class, fieldElement)) {
-					preparePrimaryKey(fieldElement);
-				} else {
-					prepareNormalColumn(fieldElement);
-				}
-			}
+					if (!isFieldInaccessibleViaGeneratedCode(entityElement, fieldElement)) {
+						preparePrimaryKey(fieldElement);
+					}
 
+				} else if (isAnnotationPresent(Column.class, fieldElement) || isAnnotationPresent(NotNull.class, fieldElement) || isAnnotationPresent(Unique.class, fieldElement)) {
+					if (!isFieldInaccessibleViaGeneratedCode(entityElement, fieldElement)) {
+						prepareNormalColumn(fieldElement);
+					}
+				}
 		}
 	}
 

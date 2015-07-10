@@ -7,5 +7,5 @@ package com.cying.common.orm;
  */
 public enum NullValueStrategy {
 	NONE,
-	DEFAULT
+	DEFAULT;
 }

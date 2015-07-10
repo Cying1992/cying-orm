@@ -15,7 +15,7 @@ import java.util.Date;
  * Time: 23:02
  */
 @Table
-public class TestEntity extends Date {
+public class TestEntity {
 
 	@Key
 	Long id;

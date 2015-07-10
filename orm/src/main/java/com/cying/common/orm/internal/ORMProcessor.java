@@ -18,8 +18,7 @@ import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.util.*;
 
-import static javax.lang.model.element.Modifier.PRIVATE;
-import static javax.lang.model.element.Modifier.STATIC;
+import static javax.lang.model.element.Modifier.*;
 import static javax.tools.Diagnostic.Kind.ERROR;
 
 /**
@@ -57,7 +56,6 @@ public final class ORMProcessor extends AbstractProcessor {
 	public Set<String> getSupportedAnnotationTypes() {
 		Set<String> types = new LinkedHashSet<>();
 		types.add(Column.class.getCanonicalName());
-		types.add(Ignore.class.getCanonicalName());
 		types.add(NotNull.class.getCanonicalName());
 		types.add(Table.class.getCanonicalName());
 		types.add(Unique.class.getCanonicalName());
@@ -172,8 +170,8 @@ public final class ORMProcessor extends AbstractProcessor {
 	static boolean isFieldInaccessibleViaGeneratedCode(TypeElement typeElement, Element fieldElement) {
 		boolean hasError = false;
 		Set<Modifier> modifiers = fieldElement.getModifiers();
-		if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC)) {
-			error(fieldElement, "The table entity's fields must not be private or static. (%s.%s)", typeElement.getQualifiedName(),
+		if (modifiers.contains(PRIVATE) || modifiers.contains(STATIC) || modifiers.contains(FINAL)) {
+			error(fieldElement, "The table entity's fields must not be private , static or final. (%s.%s)", typeElement.getQualifiedName(),
 					fieldElement.getSimpleName());
 			hasError = true;
 		}

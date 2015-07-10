@@ -102,7 +102,6 @@ public class ORMUtilTest {
 		assertThat(dao.findById(id)).isLenientEqualsToByIgnoringFields(entity1, "id");
 		assertThat(dao.first()).isLenientEqualsToByIgnoringFields(entity1, "id");
 		assertThat(dao.last()).isLenientEqualsToByIgnoringFields(entity1, "id");
-
 		assertThat(dao.count()).isEqualTo(1);
 		//assertThat(dao.listPage(0, 0)).isNull();
 		assertThat(dao.listPage(1, 0)).isNotNull().hasSize(1);
