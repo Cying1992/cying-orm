@@ -75,7 +75,11 @@ public class TableClass {
 		} else {
 			TypeMirror typeMirror = fieldElement.asType();
 			primaryKeyFieldName = fieldElement.getSimpleName().toString();
-			primaryKeyColumnName = primaryKeyFieldName.toLowerCase();
+			primaryKeyColumnName = fieldElement.getAnnotation(Key.class).value().trim().toLowerCase();
+			if (primaryKeyColumnName.isEmpty()) {
+				primaryKeyColumnName = primaryKeyFieldName.toLowerCase();
+			}
+
 			hasPrimaryKey = true;
 			String fieldClassName = getFieldClassNameOf(fieldElement);
 			if (typeMirror.getKind() != TypeKind.LONG && !fieldClassName.equals(Long.class.getCanonicalName())) {

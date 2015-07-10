@@ -1,7 +1,7 @@
 package orm;
 
+import com.cying.common.orm.Column;
 import com.cying.common.orm.Key;
-import com.cying.common.orm.NotNull;
 import com.cying.common.orm.Table;
 
 import java.math.BigDecimal;
@@ -20,7 +20,7 @@ public class TestEntity {
 	@Key
 	Long id;
 
-	@NotNull
+	@Column
 	String name;
 
 	int a;
@@ -28,28 +28,28 @@ public class TestEntity {
 	double c;
 	float d;
 
-	@NotNull
+
 	Integer e;
 
-	@NotNull
+
 	Double f;
 
-	@NotNull
+
 	Float g;
-	@NotNull
+
 	Date h;
-	@NotNull
+
 	Calendar i;
-	@NotNull
+
 	Timestamp j;
-	@NotNull
+
 	BigDecimal k;
-	@NotNull
+
 	MyEnum m;
-	@NotNull
+
 	byte[] n;
 	boolean o;
-	@NotNull
+
 	Boolean p;
 
 
