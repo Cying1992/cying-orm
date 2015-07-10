@@ -22,23 +22,23 @@ import java.util.*;
 public abstract class BaseDao<T> {
 
 
-	protected static final void saveSQL(String sql) {
+	protected static void saveSQL(String sql) {
 		ORMUtil.saveCreateTableSQL(sql);
 	}
 
-	protected static final SQLiteDatabase getDatabase() {
+	protected static SQLiteDatabase getDatabase() {
 		return ORMUtil.open();
 	}
 
-	protected static final void closeDatabase() {
+	protected static void closeDatabase() {
 		ORMUtil.close();
 	}
 
-	protected static final <E extends Enum<E>> String convertEnumToString(E e) {
-		return e == null ? null : e.name();
+	protected static <E extends Enum<E>> String convertEnumToString(E e) {
+		return e == null ? "" : e.name();
 	}
 
-	protected static final <E extends Enum<E>> E convertStringToEnum(Class<E> enumClass, String enumName) {
+	protected static <E extends Enum<E>> E convertStringToEnum(Class<E> enumClass, String enumName) {
 		try {
 
 			return enumName == null ? null : Enum.valueOf(enumClass, enumName);
@@ -48,16 +48,12 @@ public abstract class BaseDao<T> {
 		return null;
 	}
 
-	protected static <T> String convertNullValue(T value, NullValueStrategy nullValueStrategy){
-		if (value == null && nullValueStrategy == NullValueStrategy.DEFAULT) {
-			return "0";
-		}
-		return value+"";
+	protected static <H> H convertNullValue(H value, H defaultValue) {
+		return value == null ? defaultValue : value;
 	}
 
-
-	protected static final BigDecimal convertStringToBigDecimal(String val) {
-
+	protected static BigDecimal convertStringToBigDecimal(String val) {
+		new Date();
 		try {
 			return val == null ? null : new BigDecimal(val);
 		} catch (Exception e) {
@@ -66,45 +62,35 @@ public abstract class BaseDao<T> {
 		return null;
 	}
 
-	protected static final String convertBigDecimalToString(BigDecimal num) {
+	protected static String convertBigDecimalToString(BigDecimal num) {
 		return num == null ? null : num.toString();
 	}
 
-	protected static final Calendar convertLongToCalendar(Long millis) {
+	protected static Calendar convertLongToCalendar(Long millis) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(millis);
 		return calendar;
 	}
 
-	protected static final Date convertLongToDate(Long millis) {
+	protected static Date convertLongToDate(Long millis) {
 		Date date = new Date();
 		date.setTime(millis);
 		return date;
 	}
 
-	protected static final Timestamp convertLongToTimestamp(Long millis) {
-		Timestamp timestamp = new Timestamp(millis);
-		return timestamp;
+	protected static Timestamp convertLongToTimestamp(Long millis) {
+		return new Timestamp(millis);
 	}
 
-	protected static final Long convertTimeToLong(Date date, NullValueStrategy nullValueStrategy) {
-		if(date==null&& nullValueStrategy == NullValueStrategy.DEFAULT){
-			return System.currentTimeMillis();
-		}
+	protected static Long convertTimeToLong(Date date) {
 		return date == null ? 0 : date.getTime();
 	}
 
-	protected static final Long convertTimeToLong(Calendar calendar, NullValueStrategy nullValueStrategy) {
-		if(calendar==null&& nullValueStrategy == NullValueStrategy.DEFAULT){
-			return System.currentTimeMillis();
-		}
+	protected static Long convertTimeToLong(Calendar calendar) {
 		return calendar == null ? 0 : calendar.getTimeInMillis();
 	}
 
-	protected static final Long convertTimeToLong(Timestamp timestamp, NullValueStrategy nullValueStrategy) {
-		if(timestamp==null&&nullValueStrategy==NullValueStrategy.DEFAULT){
-			return  System.currentTimeMillis();
-		}
+	protected static Long convertTimeToLong(Timestamp timestamp) {
 		return timestamp == null ? 0 : timestamp.getTime();
 	}
 

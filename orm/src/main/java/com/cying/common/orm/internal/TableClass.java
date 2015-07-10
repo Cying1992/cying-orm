@@ -63,11 +63,11 @@ public class TableClass {
 	}
 
 	static void checkValid(TypeElement entityElement) {
-		if (isNotClassType(Table.class, entityElement) ||
-				isClassInaccessibleViaGeneratedCode(entityElement)
-				|| isBindingInWrongPackage(Table.class, entityElement)) {
-		}
+		isNotClassType(Table.class, entityElement);
+		isClassInaccessibleViaGeneratedCode(entityElement);
+		isBindingInWrongPackage(Table.class, entityElement);
 	}
+
 
 	private void preparePrimaryKey(VariableElement fieldElement) {
 		if (hasPrimaryKey) {
@@ -150,17 +150,26 @@ public class TableClass {
 	String brewJava() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("// Generated code from Cying-ORM. Do not modify!\n");
+
 		builder.append("package ").append(packageName).append(";\n");
-		builder.append("import android.content.ContentValues;\n");
-		builder.append("import android.database.Cursor;\n");
-		//builder.append("import com.cying.common.orm.ORMUtil;\n");
-		builder.append("import com.cying.common.orm.BaseDao;\n");
-		builder.append("import com.cying.common.orm.NullValueStrategy;\n");
+
+		//import
+		builder.append("import android.content.ContentValues;\n")
+				.append("import android.database.Cursor;\n")
+				.append("import com.cying.common.orm.BaseDao;\n")
+				.append("import com.cying.common.orm.NullValueStrategy;\n")
+				.append("import java.math.BigDecimal;\n")
+				.append("import java.sql.Timestamp;\n")
+				.append("import java.util.Date;\n")
+				.append("import java.util.Calendar;\n");
+
+		//class
 		builder.append("public class ")
 				.append(daoClassName)
 				.append(" extends BaseDao<")
 				.append(entityClassName)
 				.append("> {\n");
+
 		builder.append(brewGetCreateTable());
 		builder.append(brewCursorToEntity());
 		builder.append(brewEntityToValues());
@@ -168,6 +177,7 @@ public class TableClass {
 				.append(brewGetTableSQL())
 				.append(brewGetIndentityName())
 				.append(brewGetIndentity());
+
 		builder.append("}\n");
 		return builder.toString();
 	}

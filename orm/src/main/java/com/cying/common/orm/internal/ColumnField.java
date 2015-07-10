@@ -89,21 +89,36 @@ public class ColumnField {
 		return fieldType.name().substring(0, 1) + fieldType.name().substring(1).toLowerCase();
 	}
 
+	private boolean isDefaultStrategy() {
+		return columnNotNull && nullValueStrategy == NullValueStrategy.DEFAULT;
+	}
+
+	private String getNewTimeString(FieldType fieldType) {
+		switch (fieldType) {
+			case DATE:
+				return "new Date()";
+			case TIMESTAMP:
+				return "new Timestamp(System.currentTimeMillis())";
+			case CALENDAR:
+				return "Calendar.getInstance()";
+		}
+		return null;
+	}
+
 	private void prepareToken(FieldType fieldType) {
 		beforeConvertCursor = "";
 		afterConvertCursor = "";
 		beforeConvertValues = "";
 		afterConvertValues = "";
-
 		switch (fieldType) {
 
 
 			case BOOLEAN:
 				beforeConvertCursor = "\"1\".equals(";
 				afterConvertCursor = ")?true:false";
-				if(columnNotNull){
-					beforeConvertValues="Boolean.valueOf(convertNullValue(";
-					afterConvertValues=nullValueStrategy==NullValueStrategy.DEFAULT?",NullValueStrategy.DEFAULT))":",NullValueStrategy.NONE))";
+				if (isDefaultStrategy()) {
+					beforeConvertValues = "convertNullValue(";
+					afterConvertValues = ",false)";
 				}
 				break;
 
@@ -111,9 +126,16 @@ public class ColumnField {
 			case LONG:
 			case FLOAT:
 			case DOUBLE:
-				if(columnNotNull){
-					beforeConvertValues=convertToFirstUpperCase(fieldType)+".valueOf(convertNullValue(";
-					afterConvertValues=nullValueStrategy==NullValueStrategy.DEFAULT?",NullValueStrategy.DEFAULT))":",NullValueStrategy.NONE))";
+				if (isDefaultStrategy()) {
+					beforeConvertValues = "convertNullValue(";
+					afterConvertValues = ",new " + convertToFirstUpperCase(fieldType) + "(0))";
+				}
+				break;
+
+			case STRING:
+				if (isDefaultStrategy()) {
+					beforeConvertValues = "convertNullValue(";
+					afterConvertValues = ",\"\")";
 				}
 				break;
 
@@ -127,9 +149,21 @@ public class ColumnField {
 			case TIMESTAMP:
 			case CALENDAR:
 				beforeConvertValues = "convertTimeToLong(";
-				afterConvertValues = nullValueStrategy==NullValueStrategy.DEFAULT?",NullValueStrategy.DEFAULT)":",NullValueStrategy.NONE)";
+				if (isDefaultStrategy()) {
+					beforeConvertValues += "convertNullValue(";
+					afterConvertValues = "," + getNewTimeString(fieldType) + ")";
+				}
+				afterConvertValues += ")";
+
 				beforeConvertCursor = "convertLongTo" +convertToFirstUpperCase(fieldType) + "(";
 				afterConvertCursor = ")";
+				break;
+
+			case BLOB:
+				if (isDefaultStrategy()) {
+					beforeConvertValues += "convertNullValue(";
+					afterConvertValues = ",new byte[0])";
+				}
 				break;
 
 			case ENUM:
@@ -144,7 +178,11 @@ public class ColumnField {
 				beforeConvertCursor = "convertStringToBigDecimal(";
 				afterConvertCursor = ")";
 				beforeConvertValues = "convertBigDecimalToString(";
-				afterConvertValues = ")";
+				if (isDefaultStrategy()) {
+					beforeConvertValues += "convertNullValue(";
+					afterConvertValues = ",new BigDecimal(\"0\"))";
+				}
+				afterConvertValues += ")";
 				break;
 		}
 

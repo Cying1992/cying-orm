@@ -1,8 +1,8 @@
 package orm;
 
-import android.app.Activity;
-import com.cying.common.orm.*;
-import orm.internal.EnumWrapper;
+import com.cying.common.orm.Key;
+import com.cying.common.orm.NotNull;
+import com.cying.common.orm.Table;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -20,7 +20,7 @@ public class TestEntity{
 	@Key
 	Long id;
 
-	//@Column("id")
+	@NotNull
 	String name;
 
 	int a;
@@ -28,21 +28,28 @@ public class TestEntity{
 	double c;
 	float d;
 
-	@NotNull(NullValueStrategy.DEFAULT)
+	@NotNull
 	Integer e;
 
-	@NotNull()
+	@NotNull
 	Double f;
 
+	@NotNull
 	Float g;
+	@NotNull
 	Date h;
+	@NotNull
 	Calendar i;
+	@NotNull
 	Timestamp j;
+	@NotNull
 	BigDecimal k;
-
+	@NotNull
 	MyEnum m;
+	@NotNull
 	byte[] n;
 	boolean o;
+	@NotNull
 	Boolean p;
 
 

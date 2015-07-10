@@ -156,7 +156,7 @@ public class ORMUtilTest {
 		BaseDao<TestEntity> dao=ORMUtil.getDao(TestEntity.class);
 		TestEntity entity=new TestEntity();
 		entity.id=null;
-		entity.name="name";
+		entity.name = "";
 		entity.id=dao.save(entity);
 
 		TestEntity savedEntity=dao.first();
@@ -174,7 +174,7 @@ public class ORMUtilTest {
 		TestEntity entity=new TestEntity();
 		entity.id=0L;
 		entity.name="name";
-		assertThat(entity.id!=null&&entity.id<1).isTrue();
+		assertThat(entity.id < 1).isTrue();
 
 		//dao.insertMany(entity,entity);
 		//assertThat(dao.count()).isEqualTo(2);
