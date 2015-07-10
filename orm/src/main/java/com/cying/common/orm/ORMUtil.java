@@ -119,6 +119,15 @@ public class ORMUtil {
 
 	}
 
+	/**
+	 * 初始化数据操作类
+	 *
+	 * @param context           the context
+	 * @param dbName            the database name
+	 * @param dbVersion         the database version
+	 * @param sqLiteCallback    the upgrade and downgrade callback
+	 * @param allEntityPackages the package path which contains all the table entity classes.包含所有表的实体类的包名
+	 */
 	public static void init(Context context, String dbName, int dbVersion, final SQLiteCallback sqLiteCallback, String... allEntityPackages) {
 
 		try {
@@ -159,6 +168,12 @@ public class ORMUtil {
 		return sqlBuilder.toString();
 	}
 
+	/**
+	 *  根据表的实体类找到相应的数据库操作类
+	 * @param entityClass the table entity class
+	 * @param <T> 实体类
+	 * @return
+	 */
 	public static <T> BaseDao<T> getDao(Class<T> entityClass) {
 		try {
 			if (!daoClassNameSet.contains(getDaoClassName(entityClass))) {

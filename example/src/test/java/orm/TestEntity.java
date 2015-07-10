@@ -2,6 +2,7 @@ package orm;
 
 import com.cying.common.orm.Column;
 import com.cying.common.orm.Key;
+import com.cying.common.orm.NotNull;
 import com.cying.common.orm.Table;
 
 import java.math.BigDecimal;
@@ -34,7 +35,7 @@ public class TestEntity {
 
 	Double f;
 
-
+	@NotNull
 	Float g;
 
 	Date h;
