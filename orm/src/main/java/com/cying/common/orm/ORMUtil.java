@@ -10,10 +10,7 @@ import dalvik.system.DexFile;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -50,7 +47,7 @@ public class ORMUtil {
 
 	static final Set<String> daoClassNameSet = new LinkedHashSet<>();
 
-	static final StringBuilder sqlBuilder = new StringBuilder();
+	static final List<String> sqlBuilder = new ArrayList<>();
 
 	private static boolean debug = false;
 
@@ -135,7 +132,9 @@ public class ORMUtil {
 			sqLiteOpenHelper = new SQLiteOpenHelper(context, dbName, null, dbVersion) {
 				@Override
 				public void onCreate(SQLiteDatabase sqLiteDatabase) {
-					sqLiteDatabase.execSQL(sqlBuilder.toString());
+					for (String sql : sqlBuilder) {
+						sqLiteDatabase.execSQL(sql);
+					}
 				}
 
 				@Override
@@ -161,7 +160,7 @@ public class ORMUtil {
 	}
 
 	static void saveCreateTableSQL(String sql) {
-		sqlBuilder.append(sql);
+		sqlBuilder.add(sql);
 	}
 
 	public static String getAllTableSQL() {

@@ -150,7 +150,7 @@ public class ORMUtilTest {
 	}
 
 
-	@Test
+	//@Test
 	public void saveWithPrimaryKeyNull(){
 		BaseDao<TestEntity> dao=ORMUtil.getDao(TestEntity.class);
 		TestEntity entity=new TestEntity();
@@ -167,7 +167,7 @@ public class ORMUtilTest {
 		dao.deleteAll();
 	}
 
-	@Test
+	//@Test
 	public void saveWithPrimaryKeyLessThanOne(){
 		BaseDao<TestEntity> dao=ORMUtil.getDao(TestEntity.class);
 		TestEntity entity=new TestEntity();
@@ -207,6 +207,7 @@ public class ORMUtilTest {
 		TestEntity savedEntity=dao.first();
 		assertThat(dao.count()).isEqualTo(1);
 		assertThat(savedEntity.id).isGreaterThan(0);
+
 
 		entity.name="changed";
 		assertThat(dao.save(entity)).isEqualTo(entity.id);
