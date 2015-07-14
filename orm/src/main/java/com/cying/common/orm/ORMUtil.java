@@ -31,10 +31,9 @@ public class ORMUtil {
 		void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion);
 
 		/**
-		 *
-		 * @param db  database
-		 * @param oldVersion  database oldVersion
-		 * @param newVersion  database newVersion
+		 * @param db         database
+		 * @param oldVersion database oldVersion
+		 * @param newVersion database newVersion
 		 */
 		void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion);
 	}
@@ -168,9 +167,10 @@ public class ORMUtil {
 	}
 
 	/**
-	 *  根据表的实体类找到相应的数据库操作类
+	 * 根据表的实体类找到相应的数据库操作类
+	 *
 	 * @param entityClass the table entity class
-	 * @param <T> 实体类
+	 * @param <T>         实体类
 	 * @return
 	 */
 	public static <T> BaseDao<T> getDao(Class<T> entityClass) {
@@ -182,6 +182,35 @@ public class ORMUtil {
 		} catch (Exception e) {
 			throw new RuntimeException("Unable to find dao class for " + entityClass.getName(), e);
 		}
+	}
+
+	/**
+	 * 保存实体到数据库
+	 *
+	 * @param entity 要保存的实体
+	 * @param <T>    实体类型
+	 * @return 插入的数据行主键值
+	 */
+	public static <T> long save(T entity) {
+		BaseDao<T> baseDao = getDao(entity);
+		return baseDao.save(entity);
+	}
+
+	/**
+	 * 删除保存在数据库的实体
+	 *
+	 * @param entity 要删除的实体
+	 * @param <T>    实体类型
+	 * @return 是否删除成功
+	 */
+	public static <T> boolean delete(T entity) {
+		BaseDao<T> baseDao = getDao(entity);
+		return baseDao.delete(entity);
+	}
+
+	@SuppressWarnings("unckecked")
+	static <T> BaseDao<T> getDao(T entity) {
+		return getDao((Class<T>) entity.getClass());
 	}
 
 	@SuppressWarnings("unchecked")
