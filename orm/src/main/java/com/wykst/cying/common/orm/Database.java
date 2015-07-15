@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Date: 2015/7/14
  * Time: 14:03
  */
-public class Database {
+class Database {
 	/**
 	 * 默认的数据库名称
 	 */

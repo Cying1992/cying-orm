@@ -198,8 +198,16 @@ public class ORM {
 
 
 	private static void loadAllEntityClass(Context context, Set<String> packageNames) throws PackageManager.NameNotFoundException, IOException, ClassNotFoundException {
+
+		if (packageNames == null) {
+			packageNames = new HashSet<>();
+		}
+		if (packageNames.isEmpty()) {
+			packageNames.add(context.getPackageName());
+		}
+
 		for (String packageName : packageNames) {
-			String path = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0).sourceDir;
+			String path = context.getPackageManager().getApplicationInfo(packageName, 0).sourceDir;
 			DexFile dexfile = null;
 			try {
 				dexfile = new DexFile(path);
@@ -226,10 +234,14 @@ public class ORM {
 		Context context;
 		Map<String, Database> databaseMap;
 
-		public Configuration(Context context, String entityPackage, String... otherEntityPackage) {
+		/**
+		 * @param context        Context. 最好是Application对象
+		 * @param entityPackages 包含被{@link Table}注解的实体类的所有包名列表，若为空，则会在应用程序的包名即{@link Context#getPackageName()}下搜索被{@link Table}注解的实体类
+		 */
+		public Configuration(Context context, String... entityPackages) {
 
 
-			if (entityPackage == null) {
+			if (entityPackages == null) {
 				throw new IllegalArgumentException("You must provide one package name which contains the table entities at least!");
 			}
 
@@ -237,9 +249,7 @@ public class ORM {
 			this.entityPackages = new HashSet<>();
 			this.databaseMap = new HashMap<>();
 
-			if (otherEntityPackage != null) {
-				Collections.addAll(this.entityPackages, otherEntityPackage);
-			}
+			Collections.addAll(this.entityPackages, entityPackages);
 			try {
 				loadAllEntityClass(this.context, this.entityPackages);
 			} catch (Exception e) {
@@ -249,10 +259,10 @@ public class ORM {
 		}
 
 		/**
-		 * 添加数据库配置信息，必须是注解标注的数据库
+		 * 添加数据库配置信息，必须是{@link Table}注解的实体类提供的数据库名称
 		 *
 		 * @param configuration 数据库配置信息
-		 * @return
+		 * @return  数据库配置信息
 		 */
 		public Configuration addDatabase(final DatabaseConfiguration configuration) {
 
