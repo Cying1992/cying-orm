@@ -1,4 +1,4 @@
-package com.cying.common.orm;
+package com.wykst.cying.common.orm;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -18,17 +18,17 @@ import java.util.*;
 
 public abstract class BaseDao<T> {
 
-
-	protected static void saveSQL(String sql) {
-		ORMUtil.saveCreateTableSQL(sql);
+	protected static void saveGenerateData(String databaseName, String createTableSQL) {
+		ORM.saveGenerateData(databaseName, createTableSQL);
 	}
 
-	protected static SQLiteDatabase getDatabase() {
-		return ORMUtil.open();
+
+	protected SQLiteDatabase getDatabase() {
+		return ORM.open(getDatabaseName());
 	}
 
-	protected static void closeDatabase() {
-		ORMUtil.close();
+	protected void closeDatabase() {
+		ORM.close(getDatabaseName());
 	}
 
 	protected static <E extends Enum<E>> String convertEnumToString(E e) {
@@ -100,6 +100,8 @@ public abstract class BaseDao<T> {
 	public abstract String getTableSQL();
 
 	public abstract String getIndentityName();
+
+	public abstract String getDatabaseName();
 
 	/**
 	 * @param entity  the entity
@@ -190,7 +192,7 @@ public abstract class BaseDao<T> {
 	 *
 	 * @param count
 	 * @param pageIndex
-	 * @return
+	 * @return 结果列表
 	 */
 	public List<T> listLaterPage(int count, int pageIndex) {
 		String orderBy = getIndentityName() + " DESC ";

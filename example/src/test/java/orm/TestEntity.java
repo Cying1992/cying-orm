@@ -1,8 +1,8 @@
 package orm;
 
-import com.cying.common.orm.Column;
-import com.cying.common.orm.Key;
-import com.cying.common.orm.Table;
+import com.wykst.cying.common.orm.Column;
+import com.wykst.cying.common.orm.Key;
+import com.wykst.cying.common.orm.Table;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -14,7 +14,7 @@ import java.util.Date;
  * Date: 2015/7/6
  * Time: 23:02
  */
-@Table
+@Table(database = "kk")
 public class TestEntity {
 
 	@Key

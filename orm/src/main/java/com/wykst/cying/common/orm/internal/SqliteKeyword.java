@@ -1,4 +1,4 @@
-package com.cying.common.orm.internal;
+package com.wykst.cying.common.orm.internal;
 
 /**
  * User: Cying

@@ -1,4 +1,4 @@
-package com.cying.common.orm;
+package com.wykst.cying.common.orm;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -31,4 +31,11 @@ public @interface Table {
 	 * @return the table name
 	 */
 	String value() default "";
+
+	/**
+	 * 设置数据库名称，默认值为{@link DatabaseConfiguration#DEFAULT_DATABASE_NAME}
+	 *
+	 * @return 数据库名称
+	 */
+	String database() default DatabaseConfiguration.DEFAULT_DATABASE_NAME;
 }

@@ -1,6 +1,6 @@
-package com.cying.common.orm.internal;
+package com.wykst.cying.common.orm.internal;
 
-import com.cying.common.orm.*;
+import com.wykst.cying.common.orm.*;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;

@@ -1,6 +1,6 @@
-package com.cying.common.orm.internal;
+package com.wykst.cying.common.orm.internal;
 
-import com.cying.common.orm.*;
+import com.wykst.cying.common.orm.*;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -8,10 +8,8 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static com.cying.common.orm.internal.ORMProcessor.*;
 
 
 /**
@@ -21,9 +19,14 @@ import static com.cying.common.orm.internal.ORMProcessor.*;
  */
 public class TableClass {
 
+	static final String PARAM_SQL = "SQL";
+	static final String PARAM_TABLE = "TABLE_NAME";
+	static final String PARAM_DATABASE = "DATABASE_NAME";
+
 	private TypeElement entityElement;
 	private String packageName;
 	private String entityClassName;
+	private String databaseName;
 	private String tableName;
 	private String daoClassName;
 	private String primaryKeyColumnName;
@@ -36,11 +39,12 @@ public class TableClass {
 		checkValid(entityElement);
 
 		this.entityElement = entityElement;
-		this.packageName = getPackageNameOf(this.entityElement);
+		this.packageName = ORMProcessor.getPackageNameOf(this.entityElement);
 		this.entityClassName = findEntityClassName(entityElement, packageName);
-		this.daoClassName = entityClassName.replace(".", "$") + SUFFIX;
+		this.daoClassName = entityClassName.replace(".", "$") + ORMProcessor.SUFFIX;
 		this.tableName = findTableName(entityElement);
-		this.columnFieldMap = new HashMap<>();
+		this.databaseName = findDatabaseName(entityElement);
+		this.columnFieldMap = new LinkedHashMap<>();
 
 		prepareAllColumns(entityElement);
 		prepareCreateTableSQL();
@@ -53,23 +57,27 @@ public class TableClass {
 	}
 
 	private String findTableName(Element type) {
-		String tableName = type.getAnnotation(Table.class).value().toLowerCase();
+		String tableName = type.getAnnotation(Table.class).value();
 		if (tableName.isEmpty()) {
-			tableName = type.getSimpleName().toString().toLowerCase();
+			tableName = type.getSimpleName().toString();
 		}
 		return tableName;
 	}
 
+	private String findDatabaseName(Element type) {
+		return type.getAnnotation(Table.class).database();
+	}
+
 	static void checkValid(TypeElement entityElement) {
-		isNotClassType(Table.class, entityElement);
-		isClassInaccessibleViaGeneratedCode(entityElement);
-		isBindingInWrongPackage(Table.class, entityElement);
+		ORMProcessor.isNotClassType(Table.class, entityElement);
+		ORMProcessor.isClassInaccessibleViaGeneratedCode(entityElement);
+		ORMProcessor.isBindingInWrongPackage(Table.class, entityElement);
 	}
 
 
 	private void preparePrimaryKey(VariableElement fieldElement) {
 		if (hasPrimaryKey) {
-			error(fieldElement, "@Class (%s) :@Field (%s) :table '%s' already has the primary key '%s'",
+			ORMProcessor.error(fieldElement, "@Class (%s) :@Field (%s) :table '%s' already has the primary key '%s'",
 					entityClassName, fieldElement.getSimpleName(),
 					tableName, primaryKeyColumnName);
 		} else {
@@ -81,15 +89,15 @@ public class TableClass {
 			}
 
 			hasPrimaryKey = true;
-			String fieldClassName = getFieldClassNameOf(fieldElement);
+			String fieldClassName = ORMProcessor.getFieldClassNameOf(fieldElement);
 			if (typeMirror.getKind() != TypeKind.LONG && !fieldClassName.equals(Long.class.getCanonicalName())) {
-				error(fieldElement, "@Class (%s) :@Field (%s) :the primary key must be long or Long",
+				ORMProcessor.error(fieldElement, "@Class (%s) :@Field (%s) :the primary key must be long or Long",
 						entityClassName, primaryKeyFieldName);
 			}
-			checkKeyWord(fieldElement, primaryKeyColumnName, entityClassName, primaryKeyFieldName);
+			ORMProcessor.checkKeyWord(fieldElement, primaryKeyColumnName, entityClassName, primaryKeyFieldName);
 
 			if (columnFieldMap.containsKey(primaryKeyColumnName)) {
-				error(fieldElement, "column '%s' is already exists ", primaryKeyColumnName);
+				ORMProcessor.error(fieldElement, "column '%s' is already exists ", primaryKeyColumnName);
 			}
 
 		}
@@ -99,7 +107,7 @@ public class TableClass {
 		ColumnField columnField = new ColumnField(fieldElement);
 		String columnName = columnField.getColumnName();
 		if (columnName.equalsIgnoreCase(primaryKeyColumnName) || columnFieldMap.containsKey(columnName)) {
-			error(fieldElement, "column '%s' is already exists ", columnName);
+			ORMProcessor.error(fieldElement, "column '%s' is already exists ", columnName);
 		}
 		columnFieldMap.put(columnName, columnField);
 	}
@@ -107,16 +115,16 @@ public class TableClass {
 	private void prepareAllColumns(TypeElement entityElement) {
 
 		for (VariableElement fieldElement : ElementFilter.fieldsIn(entityElement.getEnclosedElements())) {
-				if (isAnnotationPresent(Key.class, fieldElement)) {
-					if (!isFieldInaccessibleViaGeneratedCode(entityElement, fieldElement)) {
-						preparePrimaryKey(fieldElement);
-					}
-
-				} else if (isAnnotationPresent(Column.class, fieldElement) || isAnnotationPresent(NotNull.class, fieldElement) || isAnnotationPresent(Unique.class, fieldElement)) {
-					if (!isFieldInaccessibleViaGeneratedCode(entityElement, fieldElement)) {
-						prepareNormalColumn(fieldElement);
-					}
+			if (ORMProcessor.isAnnotationPresent(Key.class, fieldElement)) {
+				if (!ORMProcessor.isFieldInaccessibleViaGeneratedCode(entityElement, fieldElement)) {
+					preparePrimaryKey(fieldElement);
 				}
+
+			} else if (ORMProcessor.isAnnotationPresent(Column.class, fieldElement) || ORMProcessor.isAnnotationPresent(NotNull.class, fieldElement) || ORMProcessor.isAnnotationPresent(Unique.class, fieldElement)) {
+				if (!ORMProcessor.isFieldInaccessibleViaGeneratedCode(entityElement, fieldElement)) {
+					prepareNormalColumn(fieldElement);
+				}
+			}
 		}
 	}
 
@@ -160,8 +168,8 @@ public class TableClass {
 		//import
 		builder.append("import android.content.ContentValues;\n")
 				.append("import android.database.Cursor;\n")
-				.append("import com.cying.common.orm.BaseDao;\n")
-				.append("import com.cying.common.orm.NullValueStrategy;\n")
+				.append("import BaseDao;\n")
+				.append("import NullValueStrategy;\n")
 				.append("import java.math.BigDecimal;\n")
 				.append("import java.sql.Timestamp;\n")
 				.append("import java.util.Date;\n")
@@ -174,10 +182,11 @@ public class TableClass {
 				.append(entityClassName)
 				.append("> {\n");
 
-		builder.append(brewGetCreateTable());
+		builder.append(brewGetStaticPart());
 		builder.append(brewCursorToEntity());
 		builder.append(brewEntityToValues());
 		builder.append(brewGetTableName())
+				.append(brewGetDatabaseName())
 				.append(brewGetTableSQL())
 				.append(brewGetIndentityName())
 				.append(brewGetIndentity());
@@ -186,26 +195,39 @@ public class TableClass {
 		return builder.toString();
 	}
 
-	private String brewGetCreateTable() {
+	private String brewGetStaticPart() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("    private static String SQL=\"")
+		builder.append("    public static final String ")
+				.append(PARAM_SQL)
+				.append(" =\"")
 				.append(createTableSQL).append("\";\n");
+
+		builder.append("    public static final String ")
+				.append(PARAM_TABLE)
+				.append(" =\"")
+				.append(tableName).append("\";\n");
+
+		builder.append("    public static final String ")
+				.append(PARAM_DATABASE)
+				.append(" =\"")
+				.append(databaseName).append("\";\n");
+
 		builder.append("    static {\n")
-				.append("        saveSQL(SQL);\n")
+				.append("       saveGenerateData(")
+				.append(PARAM_DATABASE)
+				.append(",")
+				.append(PARAM_SQL)
+				.append(");\n")
 				.append("    }\n");
 		return builder.toString();
 	}
 
 	private String brewGetTableSQL() {
-		return "    @Override public String getTableSQL() { return SQL; }\n";
+		return "    @Override public String getTableSQL() { return " + PARAM_SQL + "; }\n";
 	}
 
 	private String brewGetTableName() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("    @Override public String getTableName() { return \"");
-		builder.append(tableName);
-		builder.append("\"; }\n");
-		return builder.toString();
+		return "    @Override public String getTableName() { return " + PARAM_TABLE + "; }\n";
 	}
 
 	private String brewCursorToEntity() {
@@ -271,6 +293,10 @@ public class TableClass {
 		builder.append(primaryKeyFieldName).append("; }\n");
 
 		return builder.toString();
+	}
+
+	private String brewGetDatabaseName() {
+		return "    @Override public String getDatabaseName() { return " + PARAM_DATABASE + "; }\n";
 	}
 
 }

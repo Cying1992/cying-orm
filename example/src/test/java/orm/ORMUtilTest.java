@@ -1,9 +1,9 @@
 package orm;
 
 import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
-import com.cying.common.orm.BaseDao;
-import com.cying.common.orm.ORMUtil;
+import com.wykst.cying.common.orm.BaseDao;
+import com.wykst.cying.common.orm.DatabaseConfiguration;
+import com.wykst.cying.common.orm.ORM;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -23,19 +23,16 @@ import static org.fest.assertions.api.Assertions.assertThat;
 @Config(manifest = Config.NONE)
 public class ORMUtilTest {
 	static {
-		ORMUtil.init(Robolectric.application, "cyingdb", 1, new ORMUtil.SQLiteCallback() {
-			public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-			}
-
-			public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
-			}
-		}, "orm");
+		ORM.init(new ORM.Configuration(Robolectric.application, "orm").addDatabase(
+				new DatabaseConfiguration()
+						.setDatabaseName("cyingdb")
+						.setDatabaseVersion(1)
+		));
 	}
 
 	//@Test
 	public void testInner() {
-		BaseDao<TestEntity.InnerEntity> innerDao = ORMUtil.getDao(TestEntity.InnerEntity.class);
+		BaseDao<TestEntity.InnerEntity> innerDao = ORM.getDao(TestEntity.InnerEntity.class);
 		TestEntity.InnerEntity innerEntity = new TestEntity.InnerEntity();
 		innerEntity.innerId = 8;
 		innerEntity.innerName = "mm";
@@ -53,7 +50,7 @@ public class ORMUtilTest {
 
 	//@Test
 	public void testOuter() {
-		BaseDao<TestEntity> dao = ORMUtil.getDao(TestEntity.class);
+		BaseDao<TestEntity> dao = ORM.getDao(TestEntity.class);
 		TestEntity entity = new TestEntity();
 		entity.name = "shit";
 
@@ -90,7 +87,7 @@ public class ORMUtilTest {
 	//@Test
 	public void testCurd() {
 
-		BaseDao<TestEntity> dao = ORMUtil.getDao(TestEntity.class);
+		BaseDao<TestEntity> dao = ORM.getDao(TestEntity.class);
 		TestEntity entity1 = new TestEntity();
 		entity1.name = "name";
 
@@ -152,7 +149,7 @@ public class ORMUtilTest {
 
 	//@Test
 	public void saveWithPrimaryKeyNull(){
-		BaseDao<TestEntity> dao=ORMUtil.getDao(TestEntity.class);
+		BaseDao<TestEntity> dao = ORM.getDao(TestEntity.class);
 		TestEntity entity=new TestEntity();
 		entity.id=null;
 		entity.name = "";
@@ -169,7 +166,7 @@ public class ORMUtilTest {
 
 	//@Test
 	public void saveWithPrimaryKeyLessThanOne(){
-		BaseDao<TestEntity> dao=ORMUtil.getDao(TestEntity.class);
+		BaseDao<TestEntity> dao = ORM.getDao(TestEntity.class);
 		TestEntity entity=new TestEntity();
 		entity.id=0L;
 		entity.name="name";
@@ -198,7 +195,7 @@ public class ORMUtilTest {
 
 	@Test
 	public void saveWithPrimaryKeyGreaterThanOne(){
-		BaseDao<TestEntity> dao=ORMUtil.getDao(TestEntity.class);
+		BaseDao<TestEntity> dao = ORM.getDao(TestEntity.class);
 		TestEntity entity=new TestEntity();
 		entity.id=3L;
 		entity.name="name";

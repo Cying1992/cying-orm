@@ -1,4 +1,4 @@
-package com.cying.common.orm;
+package com.wykst.cying.common.orm;
 
 
 import java.lang.annotation.Retention;

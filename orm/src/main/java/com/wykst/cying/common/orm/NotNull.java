@@ -1,9 +1,8 @@
-package com.cying.common.orm;
+package com.wykst.cying.common.orm;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static com.cying.common.orm.NullValueStrategy.NONE;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
@@ -38,5 +37,5 @@ public @interface NotNull {
 	 *
 	 * @return {@code null}值处理的策略
 	 */
-	NullValueStrategy value() default NONE;
+	NullValueStrategy value() default NullValueStrategy.NONE;
 }

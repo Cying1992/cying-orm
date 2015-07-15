@@ -1,8 +1,8 @@
 package orm.internal;
 
-import com.cying.common.orm.internal.ORMProcessor;
 import com.google.common.base.Joiner;
 import com.google.testing.compile.JavaFileObjects;
+import com.wykst.cying.common.orm.internal.ORMProcessor;
 import org.junit.Test;
 
 import javax.tools.JavaFileObject;
@@ -20,8 +20,8 @@ public class ProcessorTest {
 	public void testTable() {
 		JavaFileObject source = JavaFileObjects.forSourceString("test.Test", Joiner.on('\n').join(
 				"package test;",
-				"import com.cying.common.orm.Table;",
-				"import com.cying.common.orm.Key;",
+				"import Table;",
+				"import Key;",
 				"@Table",
 				"public class Test {",
 				"  @Key long id;",
@@ -34,7 +34,7 @@ public class ProcessorTest {
 						"package test;",
 						"import android.content.ContentValues;",
 						"import android.database.Cursor;",
-						"import com.cying.common.orm.BaseDao;",
+						"import BaseDao;",
 						"public class Test$$Dao extends BaseDao<Test> {",
 						"    private static String SQL=\"CREATE TABLE test (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT);\"",
 						"    static {",

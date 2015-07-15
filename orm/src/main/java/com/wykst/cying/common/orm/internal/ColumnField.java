@@ -1,15 +1,11 @@
-package com.cying.common.orm.internal;
+package com.wykst.cying.common.orm.internal;
 
-import com.cying.common.orm.Column;
-import com.cying.common.orm.NotNull;
-import com.cying.common.orm.NullValueStrategy;
-import com.cying.common.orm.Unique;
+import com.wykst.cying.common.orm.Column;
+import com.wykst.cying.common.orm.NotNull;
+import com.wykst.cying.common.orm.NullValueStrategy;
+import com.wykst.cying.common.orm.Unique;
 
 import javax.lang.model.element.VariableElement;
-
-import static com.cying.common.orm.internal.FieldType.ColumnType;
-import static com.cying.common.orm.internal.FieldType.CursorType;
-import static com.cying.common.orm.internal.ORMProcessor.*;
 
 /**
  * User: Cying
@@ -22,9 +18,9 @@ public class ColumnField {
 
 	private String fieldName;
 
-	private ColumnType columnType;
+	private FieldType.ColumnType columnType;
 
-	private CursorType cursorType;
+	private FieldType.CursorType cursorType;
 
 	private boolean columnNotNull, columnUnique;
 
@@ -43,8 +39,8 @@ public class ColumnField {
 
 	public ColumnField(VariableElement entityFieldElement) {
 		this.entityFieldElement = entityFieldElement;
-		this.fieldClassName = getFieldClassNameOf(entityFieldElement);
-		this.isEnum = isEnum(entityFieldElement);
+		this.fieldClassName = ORMProcessor.getFieldClassNameOf(entityFieldElement);
+		this.isEnum = ORMProcessor.isEnum(entityFieldElement);
 
 		prepareName();
 		prepareType();
@@ -54,18 +50,18 @@ public class ColumnField {
 	private void prepareName() {
 		fieldName = entityFieldElement.getSimpleName().toString();
 
-		if (isAnnotationPresent(Column.class, entityFieldElement)) {
-			columnName = entityFieldElement.getAnnotation(Column.class).value().trim().toLowerCase();
+		if (ORMProcessor.isAnnotationPresent(Column.class, entityFieldElement)) {
+			columnName = entityFieldElement.getAnnotation(Column.class).value().trim();
 			if (columnName.isEmpty()) {
-				columnName = fieldName.toLowerCase();
+				columnName = fieldName;
 			}
 		} else {
-			columnName = fieldName.toLowerCase();
+			columnName = fieldName;
 		}
 
-		checkKeyWord(entityFieldElement, columnName, entityFieldElement.getEnclosingElement().getSimpleName().toString(), fieldName);
-		;
-		if (isAnnotationPresent(NotNull.class,entityFieldElement)) {
+		ORMProcessor.checkKeyWord(entityFieldElement, columnName, entityFieldElement.getEnclosingElement().getSimpleName().toString(), fieldName);
+
+		if (ORMProcessor.isAnnotationPresent(NotNull.class, entityFieldElement)) {
 			columnNotNull = true;
 			nullValueStrategy = entityFieldElement.getAnnotation(NotNull.class).value();
 		} else {
@@ -73,39 +69,24 @@ public class ColumnField {
 			nullValueStrategy = NullValueStrategy.NONE;
 		}
 
-		columnUnique = isAnnotationPresent(Unique.class, entityFieldElement);
+		columnUnique = ORMProcessor.isAnnotationPresent(Unique.class, entityFieldElement);
 
 	}
 
 	private void prepareType() {
 		FieldType fieldType = isEnum ? FieldType.ENUM : FieldType.getFieldType(fieldClassName);
 		if (fieldType == FieldType.NULL) {
-			error(entityFieldElement, "not support the field which type is %s", fieldClassName);
+			ORMProcessor.error(entityFieldElement, "not support the field which type is %s", fieldClassName);
 		}
-		cursorType = CursorType.getPrefixType(fieldType);
-		columnType = ColumnType.getColumnType(fieldType);
+		cursorType = FieldType.CursorType.getPrefixType(fieldType);
+		columnType = FieldType.ColumnType.getColumnType(fieldType);
 		prepareToken(fieldType);
 	}
 
-	private String convertToFirstUpperCase(FieldType fieldType){
+	static String convertToFirstUpperCase(FieldType fieldType) {
 		return fieldType.name().substring(0, 1) + fieldType.name().substring(1).toLowerCase();
 	}
 
-	private boolean isDefaultStrategy() {
-		return columnNotNull && nullValueStrategy == NullValueStrategy.DEFAULT;
-	}
-
-	private String getNewTimeString(FieldType fieldType) {
-		switch (fieldType) {
-			case DATE:
-				return "new Date()";
-			case TIMESTAMP:
-				return "new Timestamp(System.currentTimeMillis())";
-			case CALENDAR:
-				return "Calendar.getInstance()";
-		}
-		return null;
-	}
 
 	private void prepareToken(FieldType fieldType) {
 		beforeConvertCursor = "";
@@ -114,33 +95,10 @@ public class ColumnField {
 		afterConvertValues = "";
 		switch (fieldType) {
 
-
 			case BOOLEAN:
 				beforeConvertCursor = "\"1\".equals(";
 				afterConvertCursor = ")?true:false";
-				if (isDefaultStrategy()) {
-					beforeConvertValues = "convertNullValue(";
-					afterConvertValues = ",false)";
-				}
 				break;
-
-			case INTEGER:
-			case LONG:
-			case FLOAT:
-			case DOUBLE:
-				if (isDefaultStrategy()) {
-					beforeConvertValues = "convertNullValue(";
-					afterConvertValues = ",new " + convertToFirstUpperCase(fieldType) + "(0))";
-				}
-				break;
-
-			case STRING:
-				if (isDefaultStrategy()) {
-					beforeConvertValues = "convertNullValue(";
-					afterConvertValues = ",\"\")";
-				}
-				break;
-
 
 			case BOOLEAN_TYPE:
 				beforeConvertCursor = "\"1\".equals(";
@@ -151,22 +109,12 @@ public class ColumnField {
 			case TIMESTAMP:
 			case CALENDAR:
 				beforeConvertValues = "convertTimeToLong(";
-				if (isDefaultStrategy()) {
-					beforeConvertValues += "convertNullValue(";
-					afterConvertValues = "," + getNewTimeString(fieldType) + ")";
-				}
-				afterConvertValues += ")";
+				afterConvertValues = ")";
 
 				beforeConvertCursor = "convertLongTo" +convertToFirstUpperCase(fieldType) + "(";
 				afterConvertCursor = ")";
 				break;
 
-			case BLOB:
-				if (isDefaultStrategy()) {
-					beforeConvertValues += "convertNullValue(";
-					afterConvertValues = ",new byte[0])";
-				}
-				break;
 
 			case ENUM:
 				beforeConvertCursor = "convertStringToEnum(" + fieldClassName + ".class,";
@@ -176,16 +124,21 @@ public class ColumnField {
 				break;
 
 			case BIG_DECIMAL:
-				cursorType = CursorType.STRING;
+				cursorType = FieldType.CursorType.STRING;
 				beforeConvertCursor = "convertStringToBigDecimal(";
 				afterConvertCursor = ")";
 				beforeConvertValues = "convertBigDecimalToString(";
-				if (isDefaultStrategy()) {
-					beforeConvertValues += "convertNullValue(";
-					afterConvertValues = ",new BigDecimal(\"0\"))";
-				}
-				afterConvertValues += ")";
+				afterConvertValues = ")";
 				break;
+		}
+
+		//replace null value with default value
+		if (columnNotNull && nullValueStrategy != NullValueStrategy.NONE) {
+			String defaultValue = nullValueStrategy.getDefaultValue(fieldType);
+			if (defaultValue != null) {
+				beforeConvertValues += "convertNullValue(";
+				afterConvertValues = "," + defaultValue + ")" + afterConvertValues;
+			}
 		}
 
 	}
