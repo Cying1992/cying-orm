@@ -168,8 +168,7 @@ public class TableClass {
 		//import
 		builder.append("import android.content.ContentValues;\n")
 				.append("import android.database.Cursor;\n")
-				.append("import BaseDao;\n")
-				.append("import NullValueStrategy;\n")
+				.append("import com.wykst.cying.common.orm.BaseDao;\n")
 				.append("import java.math.BigDecimal;\n")
 				.append("import java.sql.Timestamp;\n")
 				.append("import java.util.Date;\n")

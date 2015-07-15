@@ -28,7 +28,7 @@ public class ORM {
 	/**
 	 * 保存BaseDao子类的名称
 	 */
-	private static final Set<String> mDaoClassNameSet = new HashSet<>();
+	static final Set<String> mDaoClassNameSet = new HashSet<>();
 
 	/**
 	 * 根据Entity类来找相应的BaseDao类
@@ -39,7 +39,7 @@ public class ORM {
 	/**
 	 * 保存database相关信息
 	 */
-	private static final Map<String, Database> mDatabaseMap = new HashMap<>();
+	static final Map<String, Database> mDatabaseMap = new HashMap<>();
 
 	private static boolean debug = false;
 
@@ -66,7 +66,8 @@ public class ORM {
 		ORM.debug = debug;
 	}
 
-	public static void init(Configuration configuration) {
+	public static void init(ORMConfiguration configuration) {
+		if(configuration==null) throw new IllegalArgumentException("The param ORMConfiguration can't be null!");
 		if (mIsInit) throw new RuntimeException("Can't init ORM twice!");
 		String databaseName;
 		Database database;
@@ -74,7 +75,7 @@ public class ORM {
 			databaseName = entry.getKey();
 			database = entry.getValue();
 			if (database.sqLiteOpenHelper == null) {
-				throw new RuntimeException("The configuration for database '" + databaseName + "' is missing, Please execute 'ORM.Configuration#addDatabase(DatabaseConfiguration)' .");
+				throw new RuntimeException("The configuration for database '" + databaseName + "' is missing .");
 			}
 		}
 		mIsInit = true;
@@ -84,7 +85,7 @@ public class ORM {
 		if (!mIsInit) throw new RuntimeException("You don't init the ORM! Please execute ORM.init method .");
 	}
 
-	private static String getDaoClassName(Class<?> entityClass) {
+	static String getDaoClassName(Class<?> entityClass) {
 		String clsName = entityClass.getName();
 		String packageName = entityClass.getPackage().getName();
 		String realClsName = packageName + "." + clsName.substring(packageName.length() + 1).replace(".", "$");
@@ -102,7 +103,7 @@ public class ORM {
 		checkInit();
 		try {
 			if (!mDaoClassNameSet.contains(getDaoClassName(entityClass))) {
-				throw new Exception("Unable to find dao class in the given packages for " + entityClass.getName());
+				throw new RuntimeException("Unable to find dao class in the given packages for " + entityClass.getName());
 			}
 			return findDao(entityClass);
 		} catch (Exception e) {
@@ -224,73 +225,6 @@ public class ORM {
 			} finally {
 				if (null != dexfile) dexfile.close();
 			}
-		}
-
-	}
-
-
-	public static class Configuration {
-		Set<String> entityPackages;
-		Context context;
-		Map<String, Database> databaseMap;
-
-		/**
-		 * @param context        Context. 最好是Application对象
-		 * @param entityPackages 包含被{@link Table}注解的实体类的所有包名列表，若为空，则会在应用程序的包名即{@link Context#getPackageName()}下搜索被{@link Table}注解的实体类
-		 */
-		public Configuration(Context context, String... entityPackages) {
-
-
-			if (entityPackages == null) {
-				throw new IllegalArgumentException("You must provide one package name which contains the table entities at least!");
-			}
-
-			this.context = context;
-			this.entityPackages = new HashSet<>();
-			this.databaseMap = new HashMap<>();
-
-			Collections.addAll(this.entityPackages, entityPackages);
-			try {
-				loadAllEntityClass(this.context, this.entityPackages);
-			} catch (Exception e) {
-				throw new RuntimeException("Can't load all the entity class !", e);
-			}
-
-		}
-
-		/**
-		 * 添加数据库配置信息，必须是{@link Table}注解的实体类提供的数据库名称
-		 *
-		 * @param configuration 数据库配置信息
-		 * @return  数据库配置信息
-		 */
-		public Configuration addDatabase(final DatabaseConfiguration configuration) {
-
-			String databaseName = configuration.getDatabaseName();
-			if (!mDatabaseMap.containsKey(databaseName)) {
-				throw new IllegalArgumentException("not exist the database which name is " + databaseName);
-			}
-
-			final Database database = mDatabaseMap.get(databaseName);
-			database.sqLiteOpenHelper = new SQLiteOpenHelper(this.context, configuration.getDatabaseName(), null, configuration.getDatabaseVersion()) {
-				@Override
-				public void onCreate(SQLiteDatabase sqLiteDatabase) {
-					for (String sql : database.sqlList) {
-						sqLiteDatabase.execSQL(sql);
-					}
-				}
-
-				@Override
-				public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-					configuration.getUpGradeListener().onGradeChanged(sqLiteDatabase, oldVersion, newVersion);
-				}
-
-				@Override
-				public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-					configuration.getDownGradeListener().onGradeChanged(db, oldVersion, newVersion);
-				}
-			};
-			return this;
 		}
 
 	}
