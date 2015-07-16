@@ -17,29 +17,26 @@ import java.util.Map;
  * Date: 2015/7/9
  * Time: 14:36
  */
-public class TableClass {
+class TableClass {
 
-	static final String PARAM_SQL = "SQL";
-	static final String PARAM_TABLE = "TABLE_NAME";
-	static final String PARAM_DATABASE = "DATABASE_NAME";
+	private static final String PARAM_SQL = "SQL";
+	private static final String PARAM_TABLE = "TABLE_NAME";
+	private static final String PARAM_DATABASE = "DATABASE_NAME";
 
-	private TypeElement entityElement;
-	private String packageName;
-	private String entityClassName;
-	private String databaseName;
-	private String tableName;
-	private String daoClassName;
+	private final String packageName;
+	private final String entityClassName;
+	private final String databaseName;
+	private final String tableName;
+	private final String daoClassName;
 	private String primaryKeyColumnName;
 	private String primaryKeyFieldName;
 	private boolean hasPrimaryKey;
-	private Map<String, ColumnField> columnFieldMap;
+	private final Map<String, ColumnField> columnFieldMap;
 	private String createTableSQL;
 
 	public TableClass(TypeElement entityElement) {
 		checkValid(entityElement);
-
-		this.entityElement = entityElement;
-		this.packageName = ORMProcessor.getPackageNameOf(this.entityElement);
+		this.packageName = ORMProcessor.getPackageNameOf(entityElement);
 		this.entityClassName = findEntityClassName(entityElement, packageName);
 		this.daoClassName = entityClassName.replace(".", "$") + ORMProcessor.SUFFIX;
 		this.tableName = findTableName(entityElement);
@@ -68,10 +65,9 @@ public class TableClass {
 		return type.getAnnotation(Table.class).database();
 	}
 
-	static void checkValid(TypeElement entityElement) {
+	private static void checkValid(TypeElement entityElement) {
 		ORMProcessor.isNotClassType(Table.class, entityElement);
 		ORMProcessor.isClassInaccessibleViaGeneratedCode(entityElement);
-		ORMProcessor.isBindingInWrongPackage(Table.class, entityElement);
 	}
 
 

@@ -12,7 +12,7 @@ import javax.lang.model.element.VariableElement;
  * Date: 2015/7/9
  * Time: 14:36
  */
-public class ColumnField {
+class ColumnField {
 
 	private String columnName;
 
@@ -29,11 +29,11 @@ public class ColumnField {
 	private String beforeConvertCursor, afterConvertCursor;
 	private String beforeConvertValues, afterConvertValues;
 
-	private VariableElement entityFieldElement;
+	private final VariableElement entityFieldElement;
 
-	private String fieldClassName;
+	private final String fieldClassName;
 
-	private boolean isEnum;
+	private final boolean isEnum;
 
 	private NullValueStrategy nullValueStrategy;
 
@@ -83,7 +83,7 @@ public class ColumnField {
 		prepareToken(fieldType);
 	}
 
-	static String convertToFirstUpperCase(FieldType fieldType) {
+	private static String convertToFirstUpperCase(FieldType fieldType) {
 		return fieldType.name().substring(0, 1) + fieldType.name().substring(1).toLowerCase();
 	}
 
@@ -111,7 +111,7 @@ public class ColumnField {
 				beforeConvertValues = "convertTimeToLong(";
 				afterConvertValues = ")";
 
-				beforeConvertCursor = "convertLongTo" +convertToFirstUpperCase(fieldType) + "(";
+				beforeConvertCursor = "convertLongTo" + convertToFirstUpperCase(fieldType) + "(";
 				afterConvertCursor = ")";
 				break;
 
@@ -144,13 +144,7 @@ public class ColumnField {
 	}
 
 	private void prepareColumnSQL() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("[").append(columnName);
-		builder.append("] ");
-		builder.append(columnType);
-		builder.append(columnNotNull ? " NOT NULL" : "");
-		builder.append(columnUnique ? " UNIQUE " : "");
-		columnSQL = builder.toString();
+		columnSQL = "[" + columnName + "] " + columnType + (columnNotNull ? " NOT NULL" : "") + (columnUnique ? " UNIQUE " : "");
 	}
 
 	String getColumnName() {

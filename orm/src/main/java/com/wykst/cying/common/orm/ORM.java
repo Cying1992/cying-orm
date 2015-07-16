@@ -1,17 +1,13 @@
 package com.wykst.cying.common.orm;
 
-import android.content.Context;
-import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import com.wykst.cying.common.orm.internal.ORMProcessor;
-import dalvik.system.DexFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -67,7 +63,7 @@ public class ORM {
 	}
 
 	public static void init(ORMConfiguration configuration) {
-		if(configuration==null) throw new IllegalArgumentException("The param ORMConfiguration can't be null!");
+		if (configuration == null) throw new IllegalArgumentException("The param ORMConfiguration can't be null!");
 		if (mIsInit) throw new RuntimeException("Can't init ORM twice!");
 		String databaseName;
 		Database database;
@@ -169,64 +165,5 @@ public class ORM {
 		mDatabaseMap.get(databaseName).close();
 	}
 
-
-	private static void loadAllEntityClass(String packageName) throws IOException, ClassNotFoundException {
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		Enumeration<URL> urls = classLoader.getResources("");
-		while (urls.hasMoreElements()) {
-			String classDirectoryName = urls.nextElement().getFile();
-			if (classDirectoryName.contains("bin") || classDirectoryName.contains("classes")) {
-				String seperator = System.getProperty("file.separator");
-				String packagePath = packageName.replace(".", seperator);
-				File classDirectory = new File(classDirectoryName + seperator + packagePath);
-				String suffix = ORMProcessor.SUFFIX + ".class";
-
-				String classFilePath;
-				File[] files = classDirectory.listFiles();
-				if (files != null) {
-					for (File filePath : files) {
-						classFilePath = filePath.getPath();
-						if (classFilePath.endsWith(suffix)) {
-							classFilePath = classFilePath.substring(classFilePath.lastIndexOf(packagePath), classFilePath.lastIndexOf(".class")).replace(seperator, ".");
-							mDaoClassNameSet.add(classFilePath);
-							Class.forName(classFilePath);
-						}
-					}
-				}
-			}
-		}
-	}
-
-
-	private static void loadAllEntityClass(Context context, Set<String> packageNames) throws PackageManager.NameNotFoundException, IOException, ClassNotFoundException {
-
-		if (packageNames == null) {
-			packageNames = new HashSet<>();
-		}
-		if (packageNames.isEmpty()) {
-			packageNames.add(context.getPackageName());
-		}
-
-		for (String packageName : packageNames) {
-			String path = context.getPackageManager().getApplicationInfo(packageName, 0).sourceDir;
-			DexFile dexfile = null;
-			try {
-				dexfile = new DexFile(path);
-				Enumeration<String> dexEntries = dexfile.entries();
-				while (dexEntries.hasMoreElements()) {
-					String className = dexEntries.nextElement();
-					if (className.endsWith(ORMProcessor.SUFFIX)) {
-						mDaoClassNameSet.add(className);
-						Class.forName(className);
-					}
-				}
-			} catch (NullPointerException e) {
-				loadAllEntityClass(packageName);
-			} finally {
-				if (null != dexfile) dexfile.close();
-			}
-		}
-
-	}
 
 }

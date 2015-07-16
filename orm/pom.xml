@@ -34,7 +34,6 @@
         </plugins>
     </build>
     <modules>
-        <module>../sample</module>
     </modules>
 
 </project>

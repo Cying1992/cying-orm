@@ -11,7 +11,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.*;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
@@ -31,8 +30,6 @@ public final class ORMProcessor extends AbstractProcessor {
 	public static final String SUFFIX = "$$Dao";
 	public static final String ANDROID_PREFIX = "android.";
 	public static final String JAVA_PREFIX = "java.";
-
-
 	private static Elements elementUtils;
 	private static Types typeUtils;
 	private static Filer filer;
@@ -47,10 +44,6 @@ public final class ORMProcessor extends AbstractProcessor {
 		messager = processingEnv.getMessager();
 	}
 
-	@Override
-	public SourceVersion getSupportedSourceVersion() {
-		return super.getSupportedSourceVersion();
-	}
 
 	@Override
 	public Set<String> getSupportedAnnotationTypes() {
@@ -106,15 +99,14 @@ public final class ORMProcessor extends AbstractProcessor {
 		return tableClassMap;
 	}
 
-	static boolean checkKeyWord(Element fieldElement, String columnName, String entityClassName, String fieldName) {
-		if (columnName == null || columnName.isEmpty()) return false;
+	static void checkKeyWord(Element fieldElement, String columnName, String entityClassName, String fieldName) {
+		if (columnName == null || columnName.isEmpty()) return;
 		for (String keyword : SqliteKeyword.keywords) {
 			if (keyword.equalsIgnoreCase(columnName)) {
 				error(fieldElement, "%s.%s :This column name  must not be a sqlite3 keyword  '%s'", entityClassName, fieldName, columnName);
-				return true;
+				return;
 			}
 		}
-		return false;
 	}
 
 	static boolean isEnum(Element fieldElement) {
@@ -153,12 +145,6 @@ public final class ORMProcessor extends AbstractProcessor {
 		return element.getAnnotation(annotationClass) != null;
 	}
 
-	static void note(String message, Object... args) {
-		if (args.length > 0) {
-			message = String.format(message, args);
-		}
-		messager.printMessage(Diagnostic.Kind.NOTE, message);
-	}
 
 	static void error(Element element, String message, Object... args) {
 		if (args.length > 0) {
@@ -179,40 +165,6 @@ public final class ORMProcessor extends AbstractProcessor {
 		return hasError;
 	}
 
-	static boolean isBindingInWrongPackage(Class<? extends Annotation> annotationClass,
-	                                       TypeElement element) {
-		return false;
-	}
-
-	static boolean isExtendsWrongClass(Class<? extends Annotation> annotationClass,
-	                                   TypeElement element) {
-		TypeMirror superMirrow = element.getSuperclass();
-		if (superMirrow instanceof NoType) return false;
-		Element superElement = typeUtils.asElement(superMirrow);
-
-
-		if (superElement instanceof TypeElement) {
-			String qualifiedName = ((TypeElement) superElement).getQualifiedName().toString();
-			if (Object.class.getCanonicalName().equals(qualifiedName)) return false;
-
-			if (qualifiedName.startsWith(ANDROID_PREFIX)) {
-				error(element, "@%s-annotated class incorrectly extends Android framework class. (%s)",
-						annotationClass.getSimpleName(), qualifiedName);
-				return true;
-			}
-			if (qualifiedName.startsWith(JAVA_PREFIX)) {
-				error(element, "@%s-annotated class incorrectly extends Java framework class. (%s)",
-						annotationClass.getSimpleName(), qualifiedName);
-				return true;
-			}
-
-			return isBindingInWrongPackage(annotationClass, (TypeElement) superElement);
-		} else {
-			return false;
-		}
-	}
-
-
 	static boolean isClassInaccessibleViaGeneratedCode(Element element) {
 		Element enclosingElement = element.getEnclosingElement();
 		ElementKind enclosingElementKind = enclosingElement.getKind();
@@ -232,12 +184,10 @@ public final class ORMProcessor extends AbstractProcessor {
 		}
 	}
 
-	static boolean isNotClassType(Class<? extends Annotation> annotationClass, Element element) {
+	static void isNotClassType(Class<? extends Annotation> annotationClass, Element element) {
 		if (!ElementKind.CLASS.equals(element.getKind())) {
 			error(element, "%s-annotated is not class type", annotationClass.getSimpleName());
-			return true;
 		}
-		return false;
 	}
 
 }

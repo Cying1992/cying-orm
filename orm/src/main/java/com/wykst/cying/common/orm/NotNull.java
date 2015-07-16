@@ -8,8 +8,8 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
  * 被{@code @NotNull}注解的属性代表该表的一列。设置字段的Not Null属性及对null值特殊处理策略
- * @see #value()
  *
+ * @see #value()
  * @see Table
  * @see Column
  * @see Key

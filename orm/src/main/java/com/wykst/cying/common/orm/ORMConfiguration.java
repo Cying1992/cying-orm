@@ -21,9 +21,9 @@ public class ORMConfiguration {
 
 	public static class Builder {
 
-		private Context context;
-		private Map<String, DatabaseConfiguration> databaseConfigurationMap;
-		private Set<Class<?>> tableEntityClassSet;
+		private final Context context;
+		private final Map<String, DatabaseConfiguration> databaseConfigurationMap;
+		private final Set<Class<?>> tableEntityClassSet;
 
 		public Builder(Context context) {
 			this.context = context;
@@ -55,7 +55,7 @@ public class ORMConfiguration {
 			ORMConfiguration ormConfiguration = new ORMConfiguration();
 			for (Class<?> cls : this.tableEntityClassSet) {
 				try {
-					String daoClassName=ORM.getDaoClassName(cls);
+					String daoClassName = ORM.getDaoClassName(cls);
 					ORM.mDaoClassNameSet.add(daoClassName);
 					Class.forName(daoClassName);
 				} catch (Exception e) {

@@ -13,6 +13,7 @@ import java.util.*;
 
 /**
  * 数据库操作类，不要去继承和实现它，系统会根据所有被{@link Table}注解的类来自动生成它的子类。
+ *
  * @param <T> the entity class
  */
 
@@ -104,7 +105,7 @@ public abstract class BaseDao<T> {
 	public abstract String getDatabaseName();
 
 	/**
-	 * @param entity  the entity
+	 * @param entity the entity
 	 * @return the primary key value ,start from 1;
 	 */
 	public abstract Long getIndentity(T entity);
@@ -178,8 +179,8 @@ public abstract class BaseDao<T> {
 	/**
 	 * list all row by id asc
 	 *
-	 * @param count  the returned item count
-	 * @param pageIndex  the page index ,start from 0
+	 * @param count     the returned item count
+	 * @param pageIndex the page index ,start from 0
 	 * @return the data list
 	 */
 	public List<T> listEarlierPage(int count, int pageIndex) {
@@ -257,6 +258,7 @@ public abstract class BaseDao<T> {
 	 * If the id of this entity is null or less than 1 ,it will ignore the id and insert this entity directly;
 	 * Otherwise it will insert or replace this entity according to whether the id is exists or not;
 	 * 保存实体类的数据。若它违反Unique约束，
+	 *
 	 * @param entity
 	 * @return
 	 */
@@ -324,9 +326,9 @@ public abstract class BaseDao<T> {
 		closeDatabase();
 	}
 
-	protected class EntityIterator implements Iterator<T> {
+	class EntityIterator implements Iterator<T> {
 
-		Cursor cursor;
+		final Cursor cursor;
 
 		public EntityIterator(Cursor cursor) {
 			this.cursor = cursor;

@@ -13,9 +13,9 @@ public class DatabaseConfiguration {
 	}
 
 	//默认数据库名称
-	public static final String DEFAULT_DATABASE_NAME = "db";
+	static final String DEFAULT_DATABASE_NAME = "db";
 
-	static final DatabaseGradeListener NullGradeListener = new DatabaseGradeListener() {
+	private static final DatabaseGradeListener NullGradeListener = new DatabaseGradeListener() {
 		@Override
 		public void onGradeChanged(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
 

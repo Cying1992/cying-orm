@@ -5,7 +5,7 @@ package com.wykst.cying.common.orm.internal;
  * Date: 2015/7/7
  * Time: 22:18
  */
-public class SqliteKeyword {
+class SqliteKeyword {
 
 	static final String[] keywords = {
 			"ABORT", "ACTION", "ADD", "AFTER", "ALL", "ALTER",

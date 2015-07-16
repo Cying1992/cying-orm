@@ -22,7 +22,7 @@ class Database {
 
 	final List<String> sqlList;
 
-	private AtomicInteger lock = new AtomicInteger();
+	private final AtomicInteger lock = new AtomicInteger();
 
 
 	Database() {

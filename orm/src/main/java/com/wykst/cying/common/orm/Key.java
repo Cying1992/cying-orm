@@ -7,7 +7,7 @@ import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
- *  User: Cying
+ * User: Cying
  * Date: 15-7-4
  * Time: 下午4:38
  * <p>
@@ -21,7 +21,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @see Column
  * @see NotNull
  * @see Unique
- * */
+ */
 @Retention(CLASS)
 @Target(FIELD)
 public @interface Key {
