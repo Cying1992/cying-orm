@@ -41,6 +41,9 @@ public class ORM {
 
 	private static final String TAG = "Cying-ORM";
 
+	//默认数据库名称
+	static String DEFAULT_DATABASE_NAME = "db.db";
+
 	private ORM() {
 	}
 

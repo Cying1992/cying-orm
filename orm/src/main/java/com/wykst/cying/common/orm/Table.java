@@ -33,9 +33,9 @@ public @interface Table {
 	String value() default "";
 
 	/**
-	 * 设置数据库名称，默认值为{@link DatabaseConfiguration#DEFAULT_DATABASE_NAME}
+	 * 设置数据库名称
 	 *
 	 * @return 数据库名称
 	 */
-	String database() default DatabaseConfiguration.DEFAULT_DATABASE_NAME;
+	String database() default "";
 }

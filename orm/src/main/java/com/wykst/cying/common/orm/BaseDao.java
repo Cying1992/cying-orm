@@ -19,8 +19,21 @@ import java.util.*;
 
 public abstract class BaseDao<T> {
 
+	/**
+	 * 将generate的代码数据保存起来
+	 * @param databaseName
+	 * @param createTableSQL
+	 */
 	protected static void saveGenerateData(String databaseName, String createTableSQL) {
 		ORM.saveGenerateData(databaseName, createTableSQL);
+	}
+
+	/**
+	 * 获得默认数据库名称
+	 * @return
+	 */
+	protected static String getDefaultDatabaseName(){
+		return ORM.DEFAULT_DATABASE_NAME;
 	}
 
 

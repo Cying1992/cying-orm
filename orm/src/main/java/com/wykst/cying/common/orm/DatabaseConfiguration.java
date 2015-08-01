@@ -12,8 +12,7 @@ public class DatabaseConfiguration {
 		void onGradeChanged(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion);
 	}
 
-	//默认数据库名称
-	static final String DEFAULT_DATABASE_NAME = "db";
+
 
 	private static final DatabaseGradeListener NullGradeListener = new DatabaseGradeListener() {
 		@Override
@@ -39,7 +38,7 @@ public class DatabaseConfiguration {
 	}
 
 	String getDatabaseName() {
-		return databaseName == null ? DEFAULT_DATABASE_NAME : databaseName;
+		return databaseName == null ? ORM.DEFAULT_DATABASE_NAME : databaseName;
 	}
 
 	int getDatabaseVersion() {
@@ -47,7 +46,7 @@ public class DatabaseConfiguration {
 	}
 
 	/**
-	 * 设置数据库名称，若不设置或为null，则默认值为{@link #DEFAULT_DATABASE_NAME}
+	 * 设置数据库名称，若不设置或为null
 	 *
 	 * @param databaseName 数据库名称
 	 * @return

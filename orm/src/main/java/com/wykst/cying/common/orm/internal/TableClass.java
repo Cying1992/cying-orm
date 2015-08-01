@@ -54,7 +54,7 @@ class TableClass {
 	}
 
 	private String findTableName(Element type) {
-		String tableName = type.getAnnotation(Table.class).value();
+		String tableName = type.getAnnotation(Table.class).value().trim();
 		if (tableName.isEmpty()) {
 			tableName = type.getSimpleName().toString();
 		}
@@ -62,7 +62,7 @@ class TableClass {
 	}
 
 	private String findDatabaseName(Element type) {
-		return type.getAnnotation(Table.class).database();
+		return type.getAnnotation(Table.class).database().trim();
 	}
 
 	private static void checkValid(TypeElement entityElement) {
@@ -190,23 +190,39 @@ class TableClass {
 		return builder.toString();
 	}
 
+	/**
+	 * 生成静态部分的代码，数据库名
+	 * @return
+	 */
 	private String brewGetStaticPart() {
 		StringBuilder builder = new StringBuilder();
+
+		//创建表的语句
 		builder.append("    public static final String ")
 				.append(PARAM_SQL)
 				.append(" =\"")
 				.append(createTableSQL).append("\";\n");
 
+		//表名
 		builder.append("    public static final String ")
 				.append(PARAM_TABLE)
 				.append(" =\"")
 				.append(tableName).append("\";\n");
 
+		//数据库名称
 		builder.append("    public static final String ")
 				.append(PARAM_DATABASE)
-				.append(" =\"")
-				.append(databaseName).append("\";\n");
+				.append(" = ");
+		if(databaseName.isEmpty()){
+			//数据库名称为空用默认数据库名
+			builder.append("getDefaultDatabaseName();\n");
+		}else{
+			builder.append("\"");
+			builder.append(databaseName);
+			builder.append("\";\n");
+		}
 
+		//将生成的数据库名称和创建表的语句收集起来以便创建数据库和表
 		builder.append("    static {\n")
 				.append("       saveGenerateData(")
 				.append(PARAM_DATABASE)
@@ -214,6 +230,7 @@ class TableClass {
 				.append(PARAM_SQL)
 				.append(");\n")
 				.append("    }\n");
+
 		return builder.toString();
 	}
 

@@ -31,6 +31,15 @@ public class ORMConfiguration {
 			this.tableEntityClassSet = new HashSet<>();
 		}
 
+		public Builder setDefaultDatabaseName(String defaultDatabaseName){
+			if(defaultDatabaseName!=null){
+				String trimName=defaultDatabaseName.trim();
+				if(!trimName.isEmpty()){
+					ORM.DEFAULT_DATABASE_NAME=trimName;
+				}
+			}
+			return this;
+		}
 		public Builder register(Class<?> cls) {
 			if (cls != null) {
 				this.tableEntityClassSet.add(cls);
