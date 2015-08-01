@@ -26,7 +26,23 @@ public class DatabaseConfiguration {
 	private DatabaseGradeListener downGradeListener;
 	private DatabaseGradeListener upGradeListener;
 
+	/**
+	 * 采用默认数据库名称
+	 */
 	public DatabaseConfiguration() {
+	}
+
+	/**
+	 * 数据库名称
+	 * @param databaseName 数据库名称会忽略所有空白字符
+	 */
+	public DatabaseConfiguration(String databaseName){
+		if(databaseName!=null){
+			String trimName=databaseName.trim();
+			if(!trimName.isEmpty()){
+				this.databaseName=trimName;
+			}
+		}
 	}
 
 	DatabaseGradeListener getDownGradeListener() {
@@ -45,16 +61,6 @@ public class DatabaseConfiguration {
 		return databaseVersion < 1 ? 1 : databaseVersion;
 	}
 
-	/**
-	 * 设置数据库名称，若不设置或为null
-	 *
-	 * @param databaseName 数据库名称
-	 * @return
-	 */
-	public DatabaseConfiguration setDatabaseName(String databaseName) {
-		this.databaseName = databaseName;
-		return this;
-	}
 
 	/**
 	 * 设置数据库版本，若版本号小于1，则取1

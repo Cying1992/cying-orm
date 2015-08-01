@@ -26,20 +26,21 @@ public class ORMConfiguration {
 		private final Set<Class<?>> tableEntityClassSet;
 
 		public Builder(Context context) {
+			   this(context,null);
+		}
+
+		public Builder(Context context,String defaultDatabaseName){
 			this.context = context;
 			this.databaseConfigurationMap = new HashMap<>();
 			this.tableEntityClassSet = new HashSet<>();
-		}
-
-		public Builder setDefaultDatabaseName(String defaultDatabaseName){
 			if(defaultDatabaseName!=null){
 				String trimName=defaultDatabaseName.trim();
 				if(!trimName.isEmpty()){
 					ORM.DEFAULT_DATABASE_NAME=trimName;
 				}
 			}
-			return this;
 		}
+
 		public Builder register(Class<?> cls) {
 			if (cls != null) {
 				this.tableEntityClassSet.add(cls);
@@ -50,12 +51,11 @@ public class ORMConfiguration {
 		public Builder addDatabase(DatabaseConfiguration configuration) {
 			if (configuration != null) {
 				String databaseName = configuration.getDatabaseName();
-				if (databaseConfigurationMap.containsKey(databaseName)) {
-					throw new IllegalArgumentException("already exist the database configuration for " + databaseName);
-				} else {
-					this.databaseConfigurationMap.put(databaseName, configuration);
-				}
-
+					if (databaseConfigurationMap.containsKey(databaseName)) {
+						throw new IllegalArgumentException("already exist the database configuration for " + databaseName);
+					} else {
+						this.databaseConfigurationMap.put(databaseName, configuration);
+					}
 			}
 			return this;
 		}
@@ -80,7 +80,7 @@ public class ORMConfiguration {
 				}
 
 				final Database database = ORM.mDatabaseMap.get(databaseName);
-				database.sqLiteOpenHelper = new SQLiteOpenHelper(this.context, configuration.getDatabaseName(), null, configuration.getDatabaseVersion()) {
+				database.sqLiteOpenHelper = new SQLiteOpenHelper(this.context, databaseName, null, configuration.getDatabaseVersion()) {
 					@Override
 					public void onCreate(SQLiteDatabase sqLiteDatabase) {
 						for (String sql : database.sqlList) {
