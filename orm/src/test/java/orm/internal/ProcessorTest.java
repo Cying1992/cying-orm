@@ -55,10 +55,10 @@ public class ProcessorTest {
 						"        return \"test\";",
 						"    }",
 						"    @Override public String getTableSQL() { return SQL; }",
-						"    @Override public String getIndentityName() {",
+						"    @Override public String getIdentityName() {",
 						"        return \"id\";",
 						"    }",
-						"    @Override public long getIndentity(Test entity) {",
+						"    @Override public long getIdentity(Test entity) {",
 						"        return entity.id;",
 						"    }",
 						"}"

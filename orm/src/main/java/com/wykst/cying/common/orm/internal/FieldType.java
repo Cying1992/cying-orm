@@ -14,6 +14,7 @@ public enum FieldType {
 
 	NULL(""),
 	ENUM("enum"),
+	TABLE_ENTITY("entity"),
 
 	//CursorType.INTEGER
 	BOOLEAN(Boolean.class.getCanonicalName()),
@@ -136,6 +137,7 @@ public enum FieldType {
 				case DATE:
 				case TIMESTAMP:
 				case CALENDAR:
+				case TABLE_ENTITY:
 					return INTEGER;
 
 				case DOUBLE:
@@ -197,6 +199,7 @@ public enum FieldType {
 				case CALENDAR:
 				case LONG:
 				case LONG_TYPE:
+				case TABLE_ENTITY:
 					return CursorType.LONG;
 
 				case DOUBLE:

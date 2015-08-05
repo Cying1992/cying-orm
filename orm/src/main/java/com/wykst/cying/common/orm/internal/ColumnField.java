@@ -34,17 +34,34 @@ class ColumnField {
 	private final String fieldClassName;
 
 	private final boolean isEnum;
+	private final boolean isTableEntityClass;
 
 	private NullValueStrategy nullValueStrategy;
 
-	public ColumnField(VariableElement entityFieldElement) {
+	private String tableClassName;
+
+	public ColumnField(VariableElement entityFieldElement,String tableClassName) {
 		this.entityFieldElement = entityFieldElement;
 		this.fieldClassName = ORMProcessor.getFieldClassNameOf(entityFieldElement);
 		this.isEnum = ORMProcessor.isEnum(entityFieldElement);
+		this.isTableEntityClass=ORMProcessor.isTableEntityClass(fieldClassName);
+		this.tableClassName=tableClassName;
 
 		prepareName();
 		prepareType();
 		prepareColumnSQL();
+	}
+
+	boolean isTableEntityClass(){
+		return isTableEntityClass;
+	}
+
+	String getFieldClassName(){
+		return fieldClassName;
+	}
+
+	String getFieldName(){
+		return fieldName;
 	}
 
 	private void prepareName() {
@@ -74,7 +91,14 @@ class ColumnField {
 	}
 
 	private void prepareType() {
-		FieldType fieldType = isEnum ? FieldType.ENUM : FieldType.getFieldType(fieldClassName);
+		final FieldType fieldType;
+		if(isEnum){
+			     fieldType=FieldType.ENUM;
+		}else if(isTableEntityClass){
+			  fieldType=FieldType.TABLE_ENTITY;
+		}else{
+			fieldType=FieldType.getFieldType(fieldClassName);
+		}
 		if (fieldType == FieldType.NULL) {
 			ORMProcessor.error(entityFieldElement, "not support the field which type is %s", fieldClassName);
 		}
@@ -94,6 +118,19 @@ class ColumnField {
 		beforeConvertValues = "";
 		afterConvertValues = "";
 		switch (fieldType) {
+			case TABLE_ENTITY:
+				if(tableClassName.equals(fieldClassName)){
+					beforeConvertCursor="findById(";
+					afterConvertCursor=")";
+					beforeConvertValues="getIdentity(";
+					afterConvertValues=")";
+				}else{
+					beforeConvertCursor="ORM.getDao("+fieldClassName+".class).findById(";
+					afterConvertCursor=")";
+					beforeConvertValues="ORM.getDao("+fieldClassName+".class).getIdentity(";
+					afterConvertValues=")";
+				}
+				break;
 
 			case BOOLEAN:
 				beforeConvertCursor = "\"1\".equals(";

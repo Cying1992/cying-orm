@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import com.wykst.cying.common.orm.BaseDao;
 import com.wykst.cying.common.orm.DatabaseConfiguration;
 import com.wykst.cying.common.orm.ORM;
+import com.wykst.cying.common.orm.ORMConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -23,11 +24,12 @@ import static org.fest.assertions.api.Assertions.assertThat;
 @Config(manifest = Config.NONE)
 public class ORMUtilTest {
 	static {
-		ORM.init(new ORM.Configuration(Robolectric.application, "orm").addDatabase(
-				new DatabaseConfiguration()
-						.setDatabaseName("cyingdb")
-						.setDatabaseVersion(1)
-		));
+		ORM.init(new ORMConfiguration
+				.Builder(Robolectric.application)
+				.register(TestEntity.class)
+				.addDatabase(new DatabaseConfiguration().setDatabaseVersion(1))
+				.build());
+
 	}
 
 	//@Test
@@ -40,8 +42,8 @@ public class ORMUtilTest {
 		innerValues.put("innername", innerEntity.innerName);
 
 		assertThat(innerDao.getTableName()).isEqualToIgnoringCase("innerentity");
-		assertThat(innerDao.getIndentityName()).isEqualToIgnoringCase("innerid");
-		assertThat(innerDao.getIndentity(innerEntity)).isEqualTo(innerEntity.innerId);
+		assertThat(innerDao.getIdentityName()).isEqualToIgnoringCase("innerid");
+		assertThat(innerDao.getIdentity(innerEntity)).isEqualTo(innerEntity.innerId);
 		assertThat(innerDao.getTableSQL())
 				.isEqualToIgnoringCase("create table innerentity (innerid integer primary key autoincrement,innername TEXT);");
 
@@ -59,8 +61,8 @@ public class ORMUtilTest {
 		values.put("name", entity.name);
 
 		assertThat(dao.getTableName()).isEqualToIgnoringCase("testentity");
-		assertThat(dao.getIndentityName()).isEqualToIgnoringCase("id");
-		assertThat(dao.getIndentity(entity)).isEqualTo(entity.id);
+		assertThat(dao.getIdentityName()).isEqualToIgnoringCase("id");
+		assertThat(dao.getIdentity(entity)).isEqualTo(entity.id);
 		assertThat(dao.getTableSQL())
 				.isEqualToIgnoringCase("create table testentity (id integer primary key autoincrement,name TEXT);");
 

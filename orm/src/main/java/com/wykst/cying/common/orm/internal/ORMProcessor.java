@@ -35,6 +35,15 @@ public final class ORMProcessor extends AbstractProcessor {
 	private static Filer filer;
 	private static Messager messager;
 
+	enum  ProcessState{
+		PROCESSING,
+		COMPLETED,
+		NOT_START,
+		NULL
+	}
+
+	static final Map<String,ProcessState> tableClassProcessStateMap=new HashMap<>();
+
 	@Override
 	public synchronized void init(ProcessingEnvironment env) {
 		super.init(env);
@@ -86,15 +95,25 @@ public final class ORMProcessor extends AbstractProcessor {
 
 	private Map<TypeElement, TableClass> findTableClass(RoundEnvironment roundEnv) {
 		Map<TypeElement, TableClass> tableClassMap = new HashMap<>();
+		tableClassProcessStateMap.clear();
 		TableClass tableClass;
-		for (Element normalElement : roundEnv.getElementsAnnotatedWith(Table.class)) {
+		Set<? extends Element> tableClassSet=  roundEnv.getElementsAnnotatedWith(Table.class);
+		for(Element element:tableClassSet){
+			TypeElement typeElement= (TypeElement) element;
+			tableClassProcessStateMap.put(typeElement.getQualifiedName().toString(),ProcessState.NOT_START);
+		}
+
+		for (Element normalElement :tableClassSet) {
 			TypeElement element = (TypeElement) normalElement;
+			String elementClassName=element.getQualifiedName().toString();
+			tableClassProcessStateMap.put(elementClassName,ProcessState.PROCESSING);
 			tableClass = new TableClass(element);
 			if (!tableClass.hasPrimaryKey()) {
 				error(element, "Table '%s' don't have the primary key", tableClass.getTableName());
 				return tableClassMap;
 			}
 			tableClassMap.put(element, tableClass);
+			tableClassProcessStateMap.put(elementClassName,ProcessState.COMPLETED);
 		}
 		return tableClassMap;
 	}
@@ -112,6 +131,20 @@ public final class ORMProcessor extends AbstractProcessor {
 	static boolean isEnum(Element fieldElement) {
 		Element element = typeUtils.asElement(fieldElement.asType());
 		return element != null && ElementKind.ENUM.equals(element.getKind());
+	}
+
+	static boolean isTableEntityClass(String className){
+		if(className!=null) {
+			return tableClassProcessStateMap.containsKey(className);
+		}
+		return false;
+	}
+
+	static ProcessState getTableEntityClassProcessState(String className){
+		if(isTableEntityClass(className)){
+			return tableClassProcessStateMap.get(className);
+		}
+		return ProcessState.NULL;
 	}
 
 	static String getFieldClassNameOf(Element fieldElement) {

@@ -105,6 +105,13 @@ public abstract class BaseDao<T> {
 		return timestamp == null ? 0 : timestamp.getTime();
 	}
 
+	protected static  boolean checkEqual(Object t1,Object t2){
+		 if(t1!=null&&t2!=null){
+			 return t1.equals(t2);
+		 }
+		return false;
+	}
+
 	protected abstract T cursorToEntity(Cursor cursor);
 
 	protected abstract ContentValues entityToValues(T entity);
@@ -113,15 +120,17 @@ public abstract class BaseDao<T> {
 
 	public abstract String getTableSQL();
 
-	public abstract String getIndentityName();
+	public abstract String getIdentityName();
 
 	public abstract String getDatabaseName();
 
 	/**
 	 * @param entity the entity
-	 * @return the primary key value ,start from 1;
+	 * @return the primary key value
 	 */
-	public abstract Long getIndentity(T entity);
+	public abstract Long getIdentity(T entity);
+
+	public abstract void setIdentity(T entity,Long value);
 
 	private List<T> cursorToEntityList(Cursor cursor) {
 		List<T> result = new ArrayList<>();
@@ -143,14 +152,14 @@ public abstract class BaseDao<T> {
 	 * @return first inserted entity
 	 */
 	public T first() {
-		String query = "SELECT * FROM " + getTableName() + " ORDER BY " + getIndentityName() + " ASC LIMIT 1";
+		String query = "SELECT * FROM " + getTableName() + " ORDER BY " + getIdentityName() + " ASC LIMIT 1";
 		List<T> list = findWithQuery(query);
 		if (list.isEmpty()) return null;
 		return list.get(0);
 	}
 
 	public T first(String whereClause, String... whereArgs) {
-		List<T> list = find(whereClause, whereArgs, null, getIndentityName() + " ASC ", "1");
+		List<T> list = find(whereClause, whereArgs, null, getIdentityName() + " ASC ", "1");
 		return list.isEmpty() ? null : list.get(0);
 	}
 
@@ -158,14 +167,14 @@ public abstract class BaseDao<T> {
 	 * @return last inserted entity
 	 */
 	public T last() {
-		String query = "SELECT * FROM " + getTableName() + " ORDER BY " + getIndentityName() + " DESC LIMIT 1";
+		String query = "SELECT * FROM " + getTableName() + " ORDER BY " + getIdentityName() + " DESC LIMIT 1";
 		List<T> list = findWithQuery(query);
 		if (list.isEmpty()) return null;
 		return list.get(0);
 	}
 
 	public T last(String whereClause, String... whereArgs) {
-		List<T> list = find(whereClause, whereArgs, null, getIndentityName() + " DESC ", "1");
+		List<T> list = find(whereClause, whereArgs, null, getIdentityName() + " DESC ", "1");
 		return list.isEmpty() ? null : list.get(0);
 	}
 
@@ -197,7 +206,7 @@ public abstract class BaseDao<T> {
 	 * @return the data list
 	 */
 	public List<T> listEarlierPage(int count, int pageIndex) {
-		String orderBy = getIndentityName() + " ASC ";
+		String orderBy = getIdentityName() + " ASC ";
 		return listPage(count, pageIndex, orderBy, null);
 	}
 
@@ -209,7 +218,7 @@ public abstract class BaseDao<T> {
 	 * @return 结果列表
 	 */
 	public List<T> listLaterPage(int count, int pageIndex) {
-		String orderBy = getIndentityName() + " DESC ";
+		String orderBy = getIdentityName() + " DESC ";
 		return listPage(count, pageIndex, orderBy, null);
 	}
 
@@ -231,7 +240,7 @@ public abstract class BaseDao<T> {
 	}
 
 	public T findById(Long id) {
-		List<T> list = find(getIndentityName() + "=?", new String[]{String.valueOf(id)}, null, null, "1");
+		List<T> list = find(getIdentityName() + "=?", new String[]{String.valueOf(id)}, null, null, "1");
 		if (list.isEmpty()) return null;
 		return list.get(0);
 	}
@@ -277,22 +286,43 @@ public abstract class BaseDao<T> {
 	 */
 	public long save(T entity) {
 		ContentValues values = entityToValues(entity);
-		Long entityId = getIndentity(entity);
+		Long entityId = getIdentity(entity);
 		long id;
 		if (entityId != null && entityId < 1) {
-			values.putNull(getIndentityName());
+			values.putNull(getIdentityName());
 		}
 		id = getDatabase().insertWithOnConflict(getTableName(), null, values, SQLiteDatabase.CONFLICT_REPLACE);
 		closeDatabase();
+		setIdentity(entity,id);
 		return id;
 	}
 
+	/**
+	 * 级联保存
+	 * @param entity
+	 * @return
+	 */
+	public long saveCascade(T entity){
 
+		return save(entity);
+	}
+
+
+	/**
+	 * 级联删除
+	 * @param entity
+	 * @return
+	 */
 	public boolean delete(T entity) {
-		boolean result = getDatabase().delete(getTableName(), getIndentityName() + "=?",
-				new String[]{String.valueOf(getIndentity(entity))}) == 1;
+		boolean result = getDatabase().delete(getTableName(), getIdentityName() + "=?",
+				new String[]{String.valueOf(getIdentity(entity))}) == 1;
 		closeDatabase();
+
 		return result;
+	}
+
+	public boolean deleteCascade(T entity){
+		return delete(entity);
 	}
 
 	public int deleteAll() {

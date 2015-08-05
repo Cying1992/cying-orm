@@ -23,6 +23,9 @@ public class TestEntity {
 	@Column
 	String name;
 
+	@Column
+	TestEntity entity;
+
 	int a;
 	long b;
 	double c;
