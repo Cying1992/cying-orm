@@ -14,7 +14,7 @@ import java.util.Date;
  * Date: 2015/7/6
  * Time: 23:02
  */
-@Table(database = "kk")
+//@Table
 public class TestEntity {
 
 	@Key

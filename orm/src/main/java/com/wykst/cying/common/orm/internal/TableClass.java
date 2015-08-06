@@ -203,6 +203,7 @@ class TableClass {
 		if(hasTimestampField)		builder.append("import java.sql.Timestamp;\n");
 		if(hasDateField)		builder.append("import java.util.Date;\n");
 		if(hasCanlendarField)		builder.append("import java.util.Calendar;\n");
+		builder.append("import java.util.*;\n");
 
 		//class
 		builder.append("public class ")
@@ -283,7 +284,7 @@ class TableClass {
 		StringBuilder builder = new StringBuilder();
 		builder.append("    @Override protected ")
 				.append(entityClassName)
-				.append(" cursorToEntity(Cursor cursor) {\n        ")
+				.append(" cursorToEntity(Cursor cursor,Map<Class,Map<Long,Object>> map) {\n        ")
 				.append(entityClassName)
 				.append(" entity=new ")
 				.append(entityClassName)
@@ -295,7 +296,11 @@ class TableClass {
 				.append("=cursor.getLong(cursor.getColumnIndex(\"")
 				.append(primaryKeyColumnName).append("\"));\n");
 
+		//±£¥Ê µÃÂ
+		builder.append("        innerSave(entity."+primaryKeyFieldName+",entity,map);\n");
+
 		for (ColumnField columnField : columnFieldMap.values()) {
+
 			builder.append("        ");
 			builder.append(columnField.brewCursorToEntity("cursor", "entity"));
 			builder.append("\n");
@@ -410,10 +415,6 @@ class TableClass {
 
 	private String brewGetDatabaseName() {
 		return "    @Override public String getDatabaseName() { return " + PARAM_DATABASE + "; }\n";
-	}
-
-	private String brewNewEntity() {
-		return "    @Override public " + entityClassName + " newEntity(){ return new " + entityClassName + "(); }\n";
 	}
 
 }

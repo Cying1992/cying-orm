@@ -1,5 +1,8 @@
 package com.wykst.cying.common.orm;
 
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import com.wykst.cying.common.orm.internal.ORMProcessor;
@@ -61,7 +64,7 @@ public class ORM {
 	/**
 	 * Control whether debug logging is enabled.
 	 */
-	public static void setDebug(boolean debug) {
+	static void setDebug(boolean debug) {
 		ORM.debug = debug;
 	}
 
@@ -168,5 +171,48 @@ public class ORM {
 		mDatabaseMap.get(databaseName).close();
 	}
 
+	static void debugCursor(String tableName,Cursor cursor){
+		if(debug){
+			StackTraceElement[] stackTraceElements=Thread.currentThread().getStackTrace();
+			StringBuilder builder=new StringBuilder();
+			printTableAndMethod(tableName, builder);
+			builder.append("- Cursor: ");
+			DatabaseUtils.dumpCurrentRow(cursor, builder);
+			System.out.print(builder.toString());
+			//Log.d(TAG, builder.toString());
+		}
+	}
 
+	static void debugContentValues(String tableName,ContentValues contentValues){
+		  if(debug){
+			  StringBuilder builder=new StringBuilder();
+
+			  printTableAndMethod(tableName, builder);
+			  builder.append("-ContentValues: {\n");
+			  for(String key:contentValues.keySet()){
+				  builder.append("   "+key+'='+contentValues.getAsString(key)+"\n");
+			  }
+			  builder.append("}\n");
+			  //Log.d(TAG, builder.toString());
+			  System.out.print(builder.toString());
+		  }
+	}
+
+	private static void printTableAndMethod(String tableName,StringBuilder sb){
+		sb.append("Table( ")
+				.append(tableName)
+				.append(" )-");
+		StackTraceElement[] stackTraceElements=Thread.currentThread().getStackTrace();
+		if(stackTraceElements.length>3) {
+			StackTraceElement element;
+			for (int i = 3; i < stackTraceElements.length; ++i) {
+				element=stackTraceElements[i];
+				sb.append("-> Method: ")
+						.append(element.getMethodName())
+						.append("(line:")
+						.append(element.getLineNumber())
+						.append(")");
+			}
+		}
+	}
 }

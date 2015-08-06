@@ -21,6 +21,7 @@ public abstract class BaseDao<T> {
 
 	/**
 	 * 将generate的代码数据保存起来
+	 *
 	 * @param databaseName
 	 * @param createTableSQL
 	 */
@@ -30,9 +31,10 @@ public abstract class BaseDao<T> {
 
 	/**
 	 * 获得默认数据库名称
+	 *
 	 * @return
 	 */
-	protected static String getDefaultDatabaseName(){
+	protected static String getDefaultDatabaseName() {
 		return ORM.DEFAULT_DATABASE_NAME;
 	}
 
@@ -105,14 +107,16 @@ public abstract class BaseDao<T> {
 		return timestamp == null ? 0 : timestamp.getTime();
 	}
 
-	protected static  boolean checkEqual(Object t1,Object t2){
-		 if(t1!=null&&t2!=null){
-			 return t1.equals(t2);
-		 }
+	protected static boolean checkEqual(Object t1, Object t2) {
+		if (t1 != null && t2 != null) {
+			return t1.equals(t2);
+		}
 		return false;
 	}
 
-	protected abstract T cursorToEntity(Cursor cursor);
+	//protected T cursorToEntity(Cursor cursor){
+	//	return cursorToEntity(cursor,null);
+	//}
 
 	protected abstract ContentValues entityToValues(T entity);
 
@@ -130,14 +134,15 @@ public abstract class BaseDao<T> {
 	 */
 	public abstract Long getIdentity(T entity);
 
-	public abstract void setIdentity(T entity,Long value);
+	public abstract void setIdentity(T entity, Long value);
 
 	private List<T> cursorToEntityList(Cursor cursor) {
 		List<T> result = new ArrayList<>();
 		T entity;
 		try {
 			while (cursor.moveToNext()) {
-				entity = cursorToEntity(cursor);
+				entity = cursorToEntity(cursor,createMap());
+				ORM.debugCursor(getTableName(), cursor);
 				result.add(entity);
 			}
 		} catch (Exception e) {
@@ -240,12 +245,16 @@ public abstract class BaseDao<T> {
 	}
 
 	public T findById(Long id) {
-		List<T> list = find(getIdentityName() + "=?", new String[]{String.valueOf(id)}, null, null, "1");
-		if (list.isEmpty()) return null;
-		return list.get(0);
+		if (id != null) {
+			List<T> list = find(getIdentityName() + "=?", new String[]{String.valueOf(id)}, null, null, "1");
+			if (list.isEmpty()) return null;
+			return list.get(0);
+		}
+		return null;
 	}
 
 	public T findById(Integer id) {
+		if (id == null) return null;
 		return findById(Long.valueOf(id));
 	}
 
@@ -266,6 +275,7 @@ public abstract class BaseDao<T> {
 		return list;
 	}
 
+
 	public List<T> find(String whereClause, String... whereArgs) {
 		return find(whereClause, whereArgs, null, null, null);
 	}
@@ -279,50 +289,43 @@ public abstract class BaseDao<T> {
 	/**
 	 * If the id of this entity is null or less than 1 ,it will ignore the id and insert this entity directly;
 	 * Otherwise it will insert or replace this entity according to whether the id is exists or not;
-	 * 保存实体类的数据。若它违反Unique约束，
+	 * 按照规定，主键值必须>0，若<=0则视为插入数据库。若大于0，
+	 * 判断要保存的数据行是否违反Unique约束，若违反Unique约束，则更新对应的数据行的无Unique约束的列的值。
+	 * 若不违反Unique约束，则直接插入数据。
 	 *
 	 * @param entity
 	 * @return
 	 */
 	public long save(T entity) {
 		ContentValues values = entityToValues(entity);
+		ORM.debugContentValues(getTableName(), values);
 		Long entityId = getIdentity(entity);
 		long id;
 		if (entityId != null && entityId < 1) {
 			values.putNull(getIdentityName());
 		}
 		id = getDatabase().insertWithOnConflict(getTableName(), null, values, SQLiteDatabase.CONFLICT_REPLACE);
+		setIdentity(entity, id);
 		closeDatabase();
-		setIdentity(entity,id);
 		return id;
-	}
-
-	/**
-	 * 级联保存
-	 * @param entity
-	 * @return
-	 */
-	public long saveCascade(T entity){
-
-		return save(entity);
 	}
 
 
 	/**
 	 * 级联删除
+	 *
 	 * @param entity
 	 * @return
 	 */
 	public boolean delete(T entity) {
-		boolean result = getDatabase().delete(getTableName(), getIdentityName() + "=?",
-				new String[]{String.valueOf(getIdentity(entity))}) == 1;
-		closeDatabase();
+		if (getIdentity(entity) != null) {
+			boolean result = getDatabase().delete(getTableName(), getIdentityName() + "=?",
+					new String[]{String.valueOf(getIdentity(entity))}) == 1;
+			closeDatabase();
 
-		return result;
-	}
-
-	public boolean deleteCascade(T entity){
-		return delete(entity);
+			return result;
+		}
+		return false;
 	}
 
 	public int deleteAll() {
@@ -393,7 +396,8 @@ public abstract class BaseDao<T> {
 			}
 
 			try {
-				entity = cursorToEntity(cursor);
+				ORM.debugCursor(getTableName(), cursor);
+				entity = cursorToEntity(cursor,createMap());
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
@@ -409,6 +413,54 @@ public abstract class BaseDao<T> {
 		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
+		}
+	}
+
+
+	protected static Map<Class, Map<Long, Object>> createMap() {
+		return  new HashMap<>();
+	}
+
+	protected static void innerSave(Long id,Object obj, Map<Class,Map<Long,Object>> map){
+		if(map!=null){
+			Class cls=obj.getClass();
+			Map<Long, Object> innerMap;
+			if(map.containsKey(cls)){
+				innerMap=map.get(cls);
+			}   else{
+				innerMap=new HashMap<>();
+				map.put(cls,innerMap);
+			}
+			innerMap.put(id,obj);
+		}
+	}
+	protected abstract T cursorToEntity(Cursor cursor, Map<Class,Map<Long,Object>> map);
+
+	private T findById(Long id,Map<Class, Map<Long, Object>> map){
+		T entity=null;
+		Cursor cursor=getDatabase().query(getTableName(),null,getIdentityName()+"=?",new String[]{String.valueOf(id)},null,null,null,"1");
+		if(cursor!=null&&cursor.moveToNext()){
+			entity=cursorToEntity(cursor,map);
+			cursor.close();
+		}
+		closeDatabase();
+		return entity;
+	}
+
+	protected  static   <E> E innerFind(Long id,Class<E> cls,  Map<Class, Map<Long, Object>> map) {
+		if(map==null) return null;
+		Map<Long, Object> innerMap;
+		if (map.containsKey(cls)) {
+			innerMap = map.get(cls);
+			if (innerMap.containsKey(id)) {
+				return (E) innerMap.get(id);
+			} else {
+				return ORM.getDao(cls).findById(id,map);
+			}
+		} else {
+			innerMap = new HashMap<>();
+			map.put(cls, innerMap);
+			return ORM.getDao(cls).findById(id,map);
 		}
 	}
 

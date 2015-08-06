@@ -121,14 +121,16 @@ class ColumnField {
 		afterConvertValues = "";
 		switch (fieldType) {
 			case TABLE_ENTITY:
+				beforeConvertCursor="innerFind(";
+				afterConvertCursor=","+fieldClassName+".class,map)" ;
 				if(tableClassName.equals(fieldClassName)){
-					beforeConvertCursor="findById(";
-					afterConvertCursor=")";
+					//beforeConvertCursor="findById(";
+					//afterConvertCursor=")";
 					beforeConvertValues="getIdentity(";
 					afterConvertValues=")";
 				}else{
-					beforeConvertCursor="ORM.getDao("+fieldClassName+".class).findById(";
-					afterConvertCursor=")";
+					//beforeConvertCursor="ORM.getDao("+fieldClassName+".class).findById(";
+					//afterConvertCursor=")";
 					beforeConvertValues="ORM.getDao("+fieldClassName+".class).getIdentity(";
 					afterConvertValues=")";
 				}

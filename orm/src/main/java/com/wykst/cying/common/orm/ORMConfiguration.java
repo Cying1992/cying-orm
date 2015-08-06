@@ -24,7 +24,7 @@ public class ORMConfiguration {
 		private final Context context;
 		private final Map<String, DatabaseConfiguration> databaseConfigurationMap;
 		private final Set<Class<?>> tableEntityClassSet;
-
+		 private boolean debug;
 		public Builder(Context context) {
 			   this(context,null);
 		}
@@ -57,6 +57,11 @@ public class ORMConfiguration {
 						this.databaseConfigurationMap.put(databaseName, configuration);
 					}
 			}
+			return this;
+		}
+
+		public Builder setDebug(boolean debug){
+			 this.debug=debug;
 			return this;
 		}
 
@@ -100,7 +105,7 @@ public class ORMConfiguration {
 				};
 
 			}
-
+			ORM.setDebug(this.debug);
 			return ormConfiguration;
 		}
 

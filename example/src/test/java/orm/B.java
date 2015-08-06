@@ -1,0 +1,20 @@
+package orm;
+
+import com.wykst.cying.common.orm.Column;
+import com.wykst.cying.common.orm.Key;
+import com.wykst.cying.common.orm.Table;
+
+/**
+ * User: Cying
+ * Date: 2015/8/7
+ * Time: 1:05
+ */
+@Table
+public class B {
+
+	@Key
+	Long id;
+
+	@Column
+	C c;
+}
