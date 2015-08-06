@@ -18,6 +18,7 @@ class ColumnField {
 
 	private String fieldName;
 
+	private FieldType fieldType;
 	private FieldType.ColumnType columnType;
 
 	private FieldType.CursorType cursorType;
@@ -55,7 +56,9 @@ class ColumnField {
 	boolean isTableEntityClass(){
 		return isTableEntityClass;
 	}
-
+	FieldType getFieldType(){
+		return fieldType;
+	}
 	String getFieldClassName(){
 		return fieldClassName;
 	}
@@ -91,7 +94,6 @@ class ColumnField {
 	}
 
 	private void prepareType() {
-		final FieldType fieldType;
 		if(isEnum){
 			     fieldType=FieldType.ENUM;
 		}else if(isTableEntityClass){

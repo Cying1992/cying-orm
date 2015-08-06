@@ -35,21 +35,23 @@ class TableClass {
 	private boolean hasPrimaryKey;
 	private final Map<String, ColumnField> columnFieldMap;
 	private String createTableSQL;
-	private String  entityClassQualifiedName;
+	private String entityClassQualifiedName;
 
 	//保存字段类型是表的实体类的ColumnField
 	private List<ColumnField> tableEntityColumnFieldList;
 
+	private boolean hasDateField, hasCanlendarField, hasTimestampField, hasBigDecimalField, hasTableEntityField;
+
 	public TableClass(TypeElement entityElement) {
 		checkValid(entityElement);
-		this.entityClassQualifiedName=entityElement.getQualifiedName().toString();
+		this.entityClassQualifiedName = entityElement.getQualifiedName().toString();
 		this.packageName = ORMProcessor.getPackageNameOf(entityElement);
 		this.entityClassName = findEntityClassName(entityElement, packageName);
 		this.daoClassName = entityClassName.replace(".", "$") + ORMProcessor.SUFFIX;
 		this.tableName = findTableName(entityElement);
 		this.databaseName = findDatabaseName(entityElement);
 		this.columnFieldMap = new LinkedHashMap<>();
-		this.tableEntityColumnFieldList=new ArrayList<>();
+		this.tableEntityColumnFieldList = new ArrayList<>();
 
 		prepareAllColumns(entityElement);
 		prepareCreateTableSQL();
@@ -108,13 +110,13 @@ class TableClass {
 	}
 
 	private void prepareNormalColumn(VariableElement fieldElement) {
-		ColumnField columnField = new ColumnField(fieldElement,this.entityClassQualifiedName);
+		ColumnField columnField = new ColumnField(fieldElement, this.entityClassQualifiedName);
 		String columnName = columnField.getColumnName();
 		if (columnName.equalsIgnoreCase(primaryKeyColumnName) || columnFieldMap.containsKey(columnName)) {
 			ORMProcessor.error(fieldElement, "column '%s' is already exists ", columnName);
 		}
 		columnFieldMap.put(columnName, columnField);
-		if(columnField.isTableEntityClass()){
+		if (columnField.isTableEntityClass()) {
 			tableEntityColumnFieldList.add(columnField);
 		}
 	}
@@ -133,6 +135,26 @@ class TableClass {
 				}
 			}
 		}
+		for (ColumnField columnField : columnFieldMap.values()) {
+			switch (columnField.getFieldType()) {
+				case CALENDAR:
+					hasCanlendarField = true;
+					break;
+				case DATE:
+					hasDateField = true;
+					break;
+				case TIMESTAMP:
+					hasTimestampField = true;
+					break;
+				case BIG_DECIMAL:
+					hasBigDecimalField = true;
+					break;
+				case TABLE_ENTITY:
+					hasTableEntityField = true;
+					break;
+			}
+		}
+
 	}
 
 
@@ -175,12 +197,12 @@ class TableClass {
 		//import
 		builder.append("import android.content.ContentValues;\n")
 				.append("import android.database.Cursor;\n")
-				.append("import com.wykst.cying.common.orm.BaseDao;\n")
-				.append("import com.wykst.cying.common.orm.ORM;\n")
-				.append("import java.math.BigDecimal;\n")
-				.append("import java.sql.Timestamp;\n")
-				.append("import java.util.Date;\n")
-				.append("import java.util.Calendar;\n");
+				.append("import com.wykst.cying.common.orm.BaseDao;\n");
+		if(hasTableEntityField)		builder.append("import com.wykst.cying.common.orm.ORM;\n");
+		if(hasBigDecimalField)		builder.append("import java.math.BigDecimal;\n");
+		if(hasTimestampField)		builder.append("import java.sql.Timestamp;\n");
+		if(hasDateField)		builder.append("import java.util.Date;\n");
+		if(hasCanlendarField)		builder.append("import java.util.Calendar;\n");
 
 		//class
 		builder.append("public class ")
@@ -197,9 +219,7 @@ class TableClass {
 				.append(brewGetTableSQL())
 				.append(brewGetIdentityName())
 				.append(brewGetIdentity())
-				.append(brewSetIdentity())
-				.append(brewSaveCascade())
-				.append(brewDeleteCascade());
+				.append(brewSetIdentity());
 
 
 		builder.append("}\n");
@@ -208,6 +228,7 @@ class TableClass {
 
 	/**
 	 * 生成静态部分的代码，数据库名
+	 *
 	 * @return
 	 */
 	private String brewGetStaticPart() {
@@ -229,10 +250,10 @@ class TableClass {
 		builder.append("    public static final String ")
 				.append(PARAM_DATABASE)
 				.append(" = ");
-		if(databaseName.isEmpty()){
+		if (databaseName.isEmpty()) {
 			//数据库名称为空用默认数据库名
 			builder.append("getDefaultDatabaseName();\n");
-		}else{
+		} else {
 			builder.append("\"");
 			builder.append(databaseName);
 			builder.append("\";\n");
@@ -305,22 +326,25 @@ class TableClass {
 		return builder.toString();
 	}
 
-	private String brewSaveCascade(){
-		if(!tableEntityColumnFieldList.isEmpty()){
+	private String brewSaveCascade() {
+		if (!tableEntityColumnFieldList.isEmpty()) {
 			StringBuilder builder = new StringBuilder();
 			builder.append("    @Override public long saveCascade(");
 			builder.append(entityClassName).append(" entity) {\n         long toRet = super.saveCascade(entity);\n");
-			for(ColumnField columnField:tableEntityColumnFieldList){
+			for (ColumnField columnField : tableEntityColumnFieldList) {
 
-				  builder .append("         if(entity.")
-						  .append(columnField.getFieldName())
-						  .append("!=null){")
-						  .append(" ORM.getDao(")
-						  .append(columnField.getFieldClassName())
-						  .append(".class).saveCascade(")
-						  .append("entity.")
-						  .append(columnField.getFieldName())
-						  .append("); }\n");
+				builder.append("         if(entity.")
+						.append(columnField.getFieldName())
+						.append("!=null){");
+				if (!entityClassQualifiedName.equals(columnField.getFieldClassName())) {
+					builder.append(" ORM.getDao(")
+							.append(columnField.getFieldClassName())
+							.append(".class).");
+				}
+				builder.append("saveCascade(")
+						.append("entity.")
+						.append(columnField.getFieldName())
+						.append("); }\n");
 			}
 
 			builder.append("         return toRet;\n    }\n");
@@ -330,19 +354,22 @@ class TableClass {
 		return "";
 	}
 
-	private String brewDeleteCascade(){
-		if(!tableEntityColumnFieldList.isEmpty()){
+	private String brewDeleteCascade() {
+		if (!tableEntityColumnFieldList.isEmpty()) {
 			StringBuilder builder = new StringBuilder();
 			builder.append("    @Override public boolean deleteCascade(");
 			builder.append(entityClassName).append(" entity) {\n        boolean toRet = super.deleteCascade(entity);\n");
-			for(ColumnField columnField:tableEntityColumnFieldList){
+			for (ColumnField columnField : tableEntityColumnFieldList) {
 
-				builder .append("        if(entity.")
+				builder.append("        if(entity.")
 						.append(columnField.getFieldName())
-						.append("!=null){")
-						.append(" ORM.getDao(")
-						.append(columnField.getFieldClassName())
-						.append(".class).deleteCascade(")
+						.append("!=null){");
+				if (!entityClassQualifiedName.equals(columnField.getFieldClassName())) {
+					builder.append(" ORM.getDao(")
+							.append(columnField.getFieldClassName())
+							.append(".class).");
+				}
+				builder.append("deleteCascade(")
 						.append("entity.")
 						.append(columnField.getFieldName())
 						.append("); }\n");
@@ -366,16 +393,16 @@ class TableClass {
 	private String brewGetIdentity() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("    @Override public Long getIdentity(");
-		builder.append(entityClassName).append(" entity) { return entity.");
+		builder.append(entityClassName).append(" entity) { return entity==null?null:entity.");
 		builder.append(primaryKeyFieldName).append("; }\n");
 
 		return builder.toString();
 	}
 
-	private String brewSetIdentity(){
+	private String brewSetIdentity() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("    @Override public void setIdentity(");
-		builder.append(entityClassName).append(" entity,Long value) { entity.");
+		builder.append(entityClassName).append(" entity,Long value) { if(entity!=null) entity.");
 		builder.append(primaryKeyFieldName).append("=value; }\n");
 
 		return builder.toString();
@@ -383,6 +410,10 @@ class TableClass {
 
 	private String brewGetDatabaseName() {
 		return "    @Override public String getDatabaseName() { return " + PARAM_DATABASE + "; }\n";
+	}
+
+	private String brewNewEntity() {
+		return "    @Override public " + entityClassName + " newEntity(){ return new " + entityClassName + "(); }\n";
 	}
 
 }
