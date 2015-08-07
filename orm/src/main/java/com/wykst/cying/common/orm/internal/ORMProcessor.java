@@ -95,7 +95,6 @@ public final class ORMProcessor extends AbstractProcessor {
 
 	private Map<TypeElement, TableClass> findTableClass(RoundEnvironment roundEnv) {
 		Map<TypeElement, TableClass> tableClassMap = new HashMap<>();
-		tableClassProcessStateMap.clear();
 		TableClass tableClass;
 		Set<? extends Element> tableClassSet=  roundEnv.getElementsAnnotatedWith(Table.class);
 		for(Element element:tableClassSet){
@@ -134,10 +133,7 @@ public final class ORMProcessor extends AbstractProcessor {
 	}
 
 	static boolean isTableEntityClass(String className){
-		if(className!=null) {
-			return tableClassProcessStateMap.containsKey(className);
-		}
-		return false;
+		return className!=null&&tableClassProcessStateMap.containsKey(className);
 	}
 
 	static ProcessState getTableEntityClassProcessState(String className){

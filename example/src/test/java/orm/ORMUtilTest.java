@@ -30,6 +30,7 @@ public class ORMUtilTest {
 				.register(A.class)
 				.register(B.class)
 				.register(C.class)
+				.register(D.class)
 				.addDatabase(new DatabaseConfiguration().setDatabaseVersion(1))
 				.build());
 
@@ -39,6 +40,7 @@ public class ORMUtilTest {
 		A a=new A();a.id=1L;
 		B b=new B();b.id=2L;
 		C c=new C();c.id=3L;
+		a.name="I'm A";
 		ORM.save(a);
 		ORM.save(b);
 		ORM.save(c);
@@ -57,6 +59,9 @@ public class ORMUtilTest {
 		assertThat(newA).isEqualsToByComparingFields(a);
 		assertThat(newA.b).isEqualsToByComparingFields(a.b).isEqualsToByComparingFields(b);
 		assertThat(newA.b.c).isEqualsToByComparingFields(a.b.c).isEqualsToByComparingFields(c);
+		assertThat(newA.b.c.a).isEqualsToByComparingFields(a);
+		assertThat(newA.b.c.a==a);
+		assertThat(newA.b.c.a.name).isEqualTo("I'm A");
 		//assertThat(newA.b.id).isEqualTo(b.id);
 	}
 
@@ -68,13 +73,6 @@ public class ORMUtilTest {
 		innerEntity.innerName = "mm";
 		ContentValues innerValues = new ContentValues();
 		innerValues.put("innername", innerEntity.innerName);
-
-		assertThat(innerDao.getTableName()).isEqualToIgnoringCase("innerentity");
-		assertThat(innerDao.getIdentityName()).isEqualToIgnoringCase("innerid");
-		assertThat(innerDao.getIdentity(innerEntity)).isEqualTo(innerEntity.innerId);
-		assertThat(innerDao.getTableSQL())
-				.isEqualToIgnoringCase("create table innerentity (innerid integer primary key autoincrement,innername TEXT);");
-
 		innerDao.deleteAll();
 	}
 
@@ -87,12 +85,6 @@ public class ORMUtilTest {
 
 		ContentValues values = new ContentValues();
 		values.put("name", entity.name);
-
-		assertThat(dao.getTableName()).isEqualToIgnoringCase("testentity");
-		assertThat(dao.getIdentityName()).isEqualToIgnoringCase("id");
-		assertThat(dao.getIdentity(entity)).isEqualTo(entity.id);
-		assertThat(dao.getTableSQL())
-				.isEqualToIgnoringCase("create table testentity (id integer primary key autoincrement,name TEXT);");
 
 		entity.id = dao.save(entity);
 		assertThat(entity.id).isGreaterThan(0);

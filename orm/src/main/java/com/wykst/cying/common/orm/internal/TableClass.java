@@ -24,6 +24,7 @@ class TableClass {
 	private static final String PARAM_SQL = "SQL";
 	private static final String PARAM_TABLE = "TABLE_NAME";
 	private static final String PARAM_DATABASE = "DATABASE_NAME";
+	private static final String PARAM_KEY = "KEY";
 
 	private final String packageName;
 	private final String entityClassName;
@@ -198,11 +199,11 @@ class TableClass {
 		builder.append("import android.content.ContentValues;\n")
 				.append("import android.database.Cursor;\n")
 				.append("import com.wykst.cying.common.orm.BaseDao;\n");
-		if(hasTableEntityField)		builder.append("import com.wykst.cying.common.orm.ORM;\n");
-		if(hasBigDecimalField)		builder.append("import java.math.BigDecimal;\n");
-		if(hasTimestampField)		builder.append("import java.sql.Timestamp;\n");
-		if(hasDateField)		builder.append("import java.util.Date;\n");
-		if(hasCanlendarField)		builder.append("import java.util.Calendar;\n");
+		if (hasTableEntityField) builder.append("import com.wykst.cying.common.orm.ORM;\n");
+		if (hasBigDecimalField) builder.append("import java.math.BigDecimal;\n");
+		if (hasTimestampField) builder.append("import java.sql.Timestamp;\n");
+		if (hasDateField) builder.append("import java.util.Date;\n");
+		if (hasCanlendarField) builder.append("import java.util.Calendar;\n");
 		builder.append("import java.util.*;\n");
 
 		//class
@@ -212,13 +213,10 @@ class TableClass {
 				.append(entityClassName)
 				.append("> {\n");
 
-		builder.append(brewGetStaticPart());
-		builder.append(brewCursorToEntity());
-		builder.append(brewEntityToValues());
-		builder.append(brewGetTableName())
-				.append(brewGetDatabaseName())
-				.append(brewGetTableSQL())
-				.append(brewGetIdentityName())
+		builder.append(brewGetStaticPart())
+				.append(brewConstructor())
+				.append(brewCursorToEntity())
+				.append(brewEntityToValues())
 				.append(brewGetIdentity())
 				.append(brewSetIdentity());
 
@@ -229,8 +227,6 @@ class TableClass {
 
 	/**
 	 * 生成静态部分的代码，数据库名
-	 *
-	 * @return
 	 */
 	private String brewGetStaticPart() {
 		StringBuilder builder = new StringBuilder();
@@ -247,13 +243,18 @@ class TableClass {
 				.append(" =\"")
 				.append(tableName).append("\";\n");
 
+		//主键列名
+		builder.append("    public static final String ")
+				.append(PARAM_KEY)
+				.append("=\"").append(primaryKeyColumnName).append("\";\n");
+
 		//数据库名称
 		builder.append("    public static final String ")
 				.append(PARAM_DATABASE)
 				.append(" = ");
 		if (databaseName.isEmpty()) {
 			//数据库名称为空用默认数据库名
-			builder.append("getDefaultDatabaseName();\n");
+			builder.append("null;\n");
 		} else {
 			builder.append("\"");
 			builder.append(databaseName);
@@ -272,12 +273,14 @@ class TableClass {
 		return builder.toString();
 	}
 
-	private String brewGetTableSQL() {
-		return "    @Override public String getTableSQL() { return " + PARAM_SQL + "; }\n";
-	}
-
-	private String brewGetTableName() {
-		return "    @Override public String getTableName() { return " + PARAM_TABLE + "; }\n";
+	private String brewConstructor() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("    public " + daoClassName + "(){\n        init(" + PARAM_DATABASE + "," + PARAM_TABLE + "," + PARAM_KEY + "");
+		if (hasTableEntityField) {
+			builder.append(",true");
+		}
+		builder.append(");\n    }\n");
+		return builder.toString();
 	}
 
 	private String brewCursorToEntity() {
@@ -293,12 +296,13 @@ class TableClass {
 		//primary key
 		builder.append("        entity.")
 				.append(primaryKeyFieldName)
-				.append("=cursor.getLong(cursor.getColumnIndex(\"")
-				.append(primaryKeyColumnName).append("\"));\n");
+				.append("=cursor.getLong(cursor.getColumnIndex(")
+				.append(PARAM_KEY).append("));\n");
 
 		//保存实体
-		builder.append("        innerSave(entity."+primaryKeyFieldName+",entity,map);\n");
-
+		if (hasTableEntityField) {
+			builder.append("        innerSave(entity." + primaryKeyFieldName + ",entity,map);\n");
+		}
 		for (ColumnField columnField : columnFieldMap.values()) {
 
 			builder.append("        ");
@@ -317,9 +321,9 @@ class TableClass {
 				.append(" entity) {\n        ContentValues values=new ContentValues();\n");
 
 		//primary key
-		builder.append("        values.put(\"")
-				.append(primaryKeyColumnName)
-				.append("\",entity.")
+		builder.append("        values.put(")
+				.append(PARAM_KEY)
+				.append(",entity.")
 				.append(primaryKeyFieldName).append(");\n");
 
 		for (ColumnField columnField : columnFieldMap.values()) {
@@ -386,19 +390,10 @@ class TableClass {
 		return "";
 	}
 
-	private String brewGetIdentityName() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("    @Override public String getIdentityName() { ");
-		builder.append("    return \"");
-		builder.append(primaryKeyColumnName);
-		builder.append("\"; }\n");
-		return builder.toString();
-	}
-
 	private String brewGetIdentity() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("    @Override public Long getIdentity(");
-		builder.append(entityClassName).append(" entity) { return entity==null?null:entity.");
+		builder.append("    @Override protected Long getIdentity(");
+		builder.append(entityClassName).append(" entity) { return entity.");
 		builder.append(primaryKeyFieldName).append("; }\n");
 
 		return builder.toString();
@@ -406,15 +401,10 @@ class TableClass {
 
 	private String brewSetIdentity() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("    @Override public void setIdentity(");
-		builder.append(entityClassName).append(" entity,Long value) { if(entity!=null) entity.");
+		builder.append("    @Override protected void setIdentity(");
+		builder.append(entityClassName).append(" entity,Long value) { entity.");
 		builder.append(primaryKeyFieldName).append("=value; }\n");
 
 		return builder.toString();
 	}
-
-	private String brewGetDatabaseName() {
-		return "    @Override public String getDatabaseName() { return " + PARAM_DATABASE + "; }\n";
-	}
-
 }

@@ -126,12 +126,12 @@ class ColumnField {
 				if(tableClassName.equals(fieldClassName)){
 					//beforeConvertCursor="findById(";
 					//afterConvertCursor=")";
-					beforeConvertValues="getIdentity(";
+					beforeConvertValues="innerGetSelfId(";
 					afterConvertValues=")";
 				}else{
 					//beforeConvertCursor="ORM.getDao("+fieldClassName+".class).findById(";
 					//afterConvertCursor=")";
-					beforeConvertValues="ORM.getDao("+fieldClassName+".class).getIdentity(";
+					beforeConvertValues="innerGetId(";
 					afterConvertValues=")";
 				}
 				break;
@@ -197,7 +197,6 @@ class ColumnField {
 	}
 
 	public String brewCursorToEntity(String cursorParamName, String entityParamName) {
-
 		return String.format("%s.%s=%s%s.get%s(%s.getColumnIndex(\"%s\"))%s;",
 				entityParamName,
 				fieldName,

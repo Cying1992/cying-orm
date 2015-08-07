@@ -16,5 +16,11 @@ public class B {
 	Long id;
 
 	@Column
+	A a;
+	@Column
 	C c;
+	@Column
+	B b;
+	@Column
+	D d;
 }

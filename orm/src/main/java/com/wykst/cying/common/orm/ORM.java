@@ -51,6 +51,7 @@ public class ORM {
 	}
 
 	static void saveGenerateData(String databaseName, String createTableSQL) {
+		if(databaseName==null) databaseName=DEFAULT_DATABASE_NAME;
 		Database database;
 		if (mDatabaseMap.containsKey(databaseName)) {
 			database = mDatabaseMap.get(databaseName);
@@ -194,7 +195,7 @@ public class ORM {
 			  }
 			  builder.append("}\n");
 			  //Log.d(TAG, builder.toString());
-			  System.out.print(builder.toString());
+			  //System.out.print(builder.toString());
 		  }
 	}
 

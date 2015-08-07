@@ -13,6 +13,17 @@ import com.wykst.cying.common.orm.Table;
 public class A {
 	@Key
 	Long id;
+
+	@Column
+	String name;
+
+	@Column
+	A a;
+	@Column
+	C c;
 	@Column
 	B b;
+	@Column
+	D d;
+
 }

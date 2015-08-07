@@ -7,10 +7,10 @@ import com.wykst.cying.common.orm.Table;
 /**
  * User: Cying
  * Date: 2015/8/7
- * Time: 1:25
+ * Time: 11:15
  */
 @Table
-public class C{
+public class D {
 	@Key
 	Long id;
 	@Column
