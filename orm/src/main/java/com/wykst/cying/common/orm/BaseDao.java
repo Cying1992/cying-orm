@@ -135,9 +135,10 @@ public abstract class BaseDao<T> {
 		List<T> result = new ArrayList<>();
 		T entity;
 		try {
+			Map<Class, Map<Long, Object>> map=getCachedEntityMap();
 			while (cursor.moveToNext()) {
 				ORM.debugCursor(mMetaData.tableName, cursor);
-				entity = cursorToEntity(cursor, getCachedEntityMap());
+				entity = cursorToEntity(cursor, map);
 				result.add(entity);
 			}
 		} catch (Exception e) {
@@ -369,9 +370,10 @@ public abstract class BaseDao<T> {
 	class EntityIterator implements Iterator<T> {
 
 		final Cursor cursor;
-
+		final Map<Class, Map<Long, Object>> map;
 		public EntityIterator(Cursor cursor) {
 			this.cursor = cursor;
+			this.map=getCachedEntityMap();
 		}
 
 		@Override
@@ -382,22 +384,22 @@ public abstract class BaseDao<T> {
 		@Override
 		public T next() {
 			T entity = null;
-			if (cursor == null || cursor.isAfterLast()) {
+			if (this.cursor == null || this.cursor.isAfterLast()) {
 				throw new NoSuchElementException();
 			}
-			if (cursor.isBeforeFirst()) {
-				cursor.moveToFirst();
+			if (this.cursor.isBeforeFirst()) {
+				this.cursor.moveToFirst();
 			}
 
 			try {
 				ORM.debugCursor(mMetaData.tableName, cursor);
-				entity = cursorToEntity(cursor, getCachedEntityMap());
+				entity = cursorToEntity(this.cursor, this.map);
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
-				cursor.moveToNext();
-				if (cursor.isAfterLast()) {
-					cursor.close();
+				this.cursor.moveToNext();
+				if (this.cursor.isAfterLast()) {
+					this.cursor.close();
 					closeDatabase();
 				}
 			}
