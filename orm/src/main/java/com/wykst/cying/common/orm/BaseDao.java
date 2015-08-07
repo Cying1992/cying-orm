@@ -471,7 +471,6 @@ public abstract class BaseDao<T> {
 	@SuppressWarnings("unchecked")
 	protected final <E> Long innerGetId(E entity){
 		if(entity!=null){
-			T t=(T)entity;
 			return ORM.getDao((Class<E>)entity.getClass()).getIdentity(entity);
 		}
 		return null;
