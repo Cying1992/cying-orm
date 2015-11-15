@@ -275,7 +275,7 @@ class TableClass {
 
 	private String brewConstructor() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("    public " + daoClassName + "(){\n        init(" + PARAM_DATABASE + "," + PARAM_TABLE + "," + PARAM_KEY + "");
+		builder.append("    public " + daoClassName + "(){\n        init(" + PARAM_DATABASE + "," + PARAM_TABLE + "," +PARAM_SQL+","+PARAM_KEY + "");
 		if (hasTableEntityField) {
 			builder.append(",true");
 		}

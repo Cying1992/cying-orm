@@ -26,11 +26,11 @@ public abstract class BaseDao<T> {
 		ORM.saveGenerateData(databaseName, createTableSQL);
 	}
 
-	protected SQLiteDatabase getDatabase() {
+	public SQLiteDatabase getDatabase() {
 		return ORM.open(mMetaData.databaseName);
 	}
 
-	protected void closeDatabase() {
+	public void closeDatabase() {
 		ORM.close(mMetaData.databaseName);
 	}
 
@@ -96,26 +96,44 @@ public abstract class BaseDao<T> {
 
 	private MetaData mMetaData;
 
-	protected final void init(String databaseName, String tableName, String identityName, boolean hasNestedColumn) {
+	public String getTableName(){
+		return mMetaData.tableName;
+	}
+
+	public String getDatabaseName(){
+		return mMetaData.databaseName;
+	}
+
+	public String getIdentityName(){
+		return mMetaData.identityName;
+	}
+
+	public String getCreateSQL(){
+		return mMetaData.sql;
+	}
+
+	protected final void init(String databaseName, String tableName,String sql, String identityName, boolean hasNestedColumn) {
 		if (mMetaData == null) {
-			mMetaData = new MetaData(databaseName, tableName, identityName, hasNestedColumn);
+			mMetaData = new MetaData(databaseName, tableName,sql, identityName, hasNestedColumn);
 		}
 	}
 
-	protected final void init(String databaseName, String tableName, String identityName) {
-		init(databaseName, tableName, identityName, false);
+	protected final void init(String databaseName, String tableName,String sql, String identityName) {
+		init(databaseName, tableName,sql, identityName, false);
 	}
 
 	static class MetaData {
-		private final String databaseName, tableName, identityName;
+		private final String databaseName, tableName, identityName,sql;
 		//是否有嵌套的字段
 		private final boolean hasNestedColumn;
 
-		MetaData(String databaseName, String tableName, String identityName, boolean hasNestedColumn) {
+		MetaData(String databaseName, String tableName,String sql, String identityName, boolean hasNestedColumn) {
 			this.databaseName = databaseName == null ? ORM.DEFAULT_DATABASE_NAME : databaseName;
 			this.tableName = tableName;
 			this.identityName = identityName;
 			this.hasNestedColumn = hasNestedColumn;
+			this.sql=sql;
+
 		}
 	}
 
@@ -366,6 +384,7 @@ public abstract class BaseDao<T> {
 		getDatabase().execSQL(query, arguments);
 		closeDatabase();
 	}
+
 
 	class EntityIterator implements Iterator<T> {
 
