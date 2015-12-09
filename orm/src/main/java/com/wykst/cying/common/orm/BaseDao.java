@@ -258,6 +258,32 @@ public abstract class BaseDao<T> {
 		return find(whereClause, whereArgs, null, orderBy, limit);
 	}
 
+	public List<T> listLimitLater(int count,int offset){
+		String orderBy = mMetaData.identityName + " DESC ";
+		return listLimit(count, offset, orderBy, null);
+	}
+
+	public List<T> listLimitEarlier(int count,int offset){
+		String orderBy = mMetaData.identityName + " ASC ";
+		return listLimit(count, offset, orderBy, null);
+	}
+
+	public List<T> listLimit(int count,int offset){
+		return  listLimit(count,offset,null,null);
+	}
+
+	public List<T> listLimit(int count,int offset,String orderBy){
+		return listLimit(count,offset,orderBy,null);
+	}
+
+	public List<T> listLimit(int count,int offset,String orderBy, String whereClause, String... whereArgs){
+		if (count < 1 || offset< 0) {
+			throw new IllegalArgumentException("count and offset is not valid");
+		}
+		String limit = offset + "," + count;
+		return find(whereClause, whereArgs, null, orderBy, limit);
+	}
+
 	public T findById(Long id) {
 		if (id != null) {
 			List<T> list = find(mMetaData.identityName + "=?", new String[]{String.valueOf(id)}, null, null, "1");
