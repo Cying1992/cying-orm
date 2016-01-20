@@ -203,7 +203,7 @@ public final class ORMProcessor extends AbstractProcessor {
 		} else if (enclosingElementKind.isClass() || enclosingElementKind.isInterface()) {
 			Set<Modifier> selfModifiers = element.getModifiers();
 			if (selfModifiers.contains(PRIVATE) || !selfModifiers.contains(STATIC)) {
-				error(element, "Clas %s must be static and not be private which will cause the nested table entity class to be  inaccessible via generated code.", element.getSimpleName());
+				error(element, "Class %s must be static and not be private which will cause the nested table entity class to be  inaccessible via generated code.", element.getSimpleName());
 				return true;
 			}
 			return isClassInaccessibleViaGeneratedCode(enclosingElement);

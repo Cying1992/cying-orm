@@ -19,6 +19,8 @@ import java.util.*;
 
 public abstract class BaseDao<T> {
 
+	private static final String LIMIT_ONE = " limit 1 ";
+	private static final String TRUE = "1";
 	/**
 	 * 将generate的代码数据保存起来
 	 */
@@ -96,43 +98,43 @@ public abstract class BaseDao<T> {
 
 	private MetaData mMetaData;
 
-	public String getTableName(){
+	public String getTableName() {
 		return mMetaData.tableName;
 	}
 
-	public String getDatabaseName(){
+	public String getDatabaseName() {
 		return mMetaData.databaseName;
 	}
 
-	public String getIdentityName(){
+	public String getIdentityName() {
 		return mMetaData.identityName;
 	}
 
-	public String getCreateSQL(){
+	public String getCreateSQL() {
 		return mMetaData.sql;
 	}
 
-	protected final void init(String databaseName, String tableName,String sql, String identityName, boolean hasNestedColumn) {
+	protected final void init(String databaseName, String tableName, String sql, String identityName, boolean hasNestedColumn) {
 		if (mMetaData == null) {
-			mMetaData = new MetaData(databaseName, tableName,sql, identityName, hasNestedColumn);
+			mMetaData = new MetaData(databaseName, tableName, sql, identityName, hasNestedColumn);
 		}
 	}
 
-	protected final void init(String databaseName, String tableName,String sql, String identityName) {
-		init(databaseName, tableName,sql, identityName, false);
+	protected final void init(String databaseName, String tableName, String sql, String identityName) {
+		init(databaseName, tableName, sql, identityName, false);
 	}
 
 	static class MetaData {
-		private final String databaseName, tableName, identityName,sql;
+		private final String databaseName, tableName, identityName, sql;
 		//是否有嵌套的字段
 		private final boolean hasNestedColumn;
 
-		MetaData(String databaseName, String tableName,String sql, String identityName, boolean hasNestedColumn) {
+		MetaData(String databaseName, String tableName, String sql, String identityName, boolean hasNestedColumn) {
 			this.databaseName = databaseName == null ? ORM.DEFAULT_DATABASE_NAME : databaseName;
 			this.tableName = tableName;
 			this.identityName = identityName;
 			this.hasNestedColumn = hasNestedColumn;
-			this.sql=sql;
+			this.sql = sql;
 
 		}
 	}
@@ -153,7 +155,7 @@ public abstract class BaseDao<T> {
 		List<T> result = new ArrayList<>();
 		T entity;
 		try {
-			Map<Class, Map<Long, Object>> map=getCachedEntityMap();
+			Map<Class, Map<Long, Object>> map = getCachedEntityMap();
 			while (cursor.moveToNext()) {
 				ORM.debugCursor(mMetaData.tableName, cursor);
 				entity = cursorToEntity(cursor, map);
@@ -258,26 +260,26 @@ public abstract class BaseDao<T> {
 		return find(whereClause, whereArgs, null, orderBy, limit);
 	}
 
-	public List<T> listLimitLater(int count,int offset){
+	public List<T> listLimitLater(int count, int offset) {
 		String orderBy = mMetaData.identityName + " DESC ";
 		return listLimit(count, offset, orderBy, null);
 	}
 
-	public List<T> listLimitEarlier(int count,int offset){
+	public List<T> listLimitEarlier(int count, int offset) {
 		String orderBy = mMetaData.identityName + " ASC ";
 		return listLimit(count, offset, orderBy, null);
 	}
 
-	public List<T> listLimit(int count,int offset){
-		return  listLimit(count,offset,null,null);
+	public List<T> listLimit(int count, int offset) {
+		return listLimit(count, offset, null, null);
 	}
 
-	public List<T> listLimit(int count,int offset,String orderBy){
-		return listLimit(count,offset,orderBy,null);
+	public List<T> listLimit(int count, int offset, String orderBy) {
+		return listLimit(count, offset, orderBy, null);
 	}
 
-	public List<T> listLimit(int count,int offset,String orderBy, String whereClause, String... whereArgs){
-		if (count < 1 || offset< 0) {
+	public List<T> listLimit(int count, int offset, String orderBy, String whereClause, String... whereArgs) {
+		if (count < 1 || offset < 0) {
 			throw new IllegalArgumentException("count and offset is not valid");
 		}
 		String limit = offset + "," + count;
@@ -334,7 +336,7 @@ public abstract class BaseDao<T> {
 	 * 若不违反Unique约束，则直接插入数据。
 	 */
 	public Long save(T entity) {
-		if(entity==null) return null;
+		if (entity == null) return null;
 		ContentValues values = entityToValues(entity);
 		ORM.debugContentValues(mMetaData.tableName, values);
 		Long entityId = getIdentity(entity);
@@ -348,6 +350,32 @@ public abstract class BaseDao<T> {
 		return id;
 	}
 
+	public void saveAll(Iterator<T> entities) {
+		SQLiteDatabase db = getDatabase();
+		db.beginTransaction();
+		try {
+			T entity;
+			Long entityId;
+			long id;
+			ContentValues values;
+			while (entities.hasNext()) {
+				entity = entities.next();
+				if (entity != null) {
+					entityId = getIdentity(entity);
+					values = entityToValues(entity);
+					if (entityId != null && entityId < 1) {
+						values.putNull(mMetaData.identityName);
+					}
+					id = db.insertWithOnConflict(mMetaData.tableName, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+					setIdentity(entity, id);
+				}
+			}
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
+			closeDatabase();
+		}
+	}
 
 	/**
 	 * 级联删除
@@ -356,7 +384,7 @@ public abstract class BaseDao<T> {
 	 * @return 是否删除成功
 	 */
 	public boolean delete(T entity) {
-		if(entity==null) return false;
+		if (entity == null) return false;
 		if (getIdentity(entity) != null) {
 			boolean result = getDatabase().delete(mMetaData.tableName, mMetaData.identityName + "=?",
 					new String[]{String.valueOf(getIdentity(entity))}) == 1;
@@ -367,8 +395,31 @@ public abstract class BaseDao<T> {
 		return false;
 	}
 
+	public void deleteAll(Iterator<T> entities) {
+		SQLiteDatabase db = getDatabase();
+		db.beginTransaction();
+		try {
+			T entity;
+			Long id;
+			while (entities.hasNext()) {
+				entity = entities.next();
+				if (entity != null) {
+					id = getIdentity(entity);
+					if (id != null) {
+						db.delete(mMetaData.tableName, mMetaData.identityName + "=?",
+								new String[]{String.valueOf(id)});
+					}
+				}
+			}
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
+			closeDatabase();
+		}
+	}
+
 	public int deleteAll() {
-		return deleteAll(null);
+		return deleteAll((String) null);
 	}
 
 	public int deleteAll(String whereClause, String... whereArgs) {
@@ -406,6 +457,42 @@ public abstract class BaseDao<T> {
 
 	}
 
+	public boolean exists() {
+		return exists(null);
+	}
+
+	/**
+	 * 检查是否存在记录，比count更高效点
+	 *
+	 * @param whereClause
+	 * @param whereArgs
+	 * @return
+	 */
+	public boolean exists(String whereClause, String... whereArgs) {
+
+		boolean result = false;
+		String filter = (whereClause == null || whereClause.trim().isEmpty()) ? LIMIT_ONE : " where " + whereClause + LIMIT_ONE;
+		SQLiteStatement sqliteStatement;
+		try {
+			sqliteStatement = getDatabase().compileStatement("SELECT EXISTS ( SELECT 1 FROM " + mMetaData.tableName + filter + ")");
+		} catch (SQLiteException e) {
+			e.printStackTrace();
+			return result;
+		}
+		if (whereArgs != null) {
+			for (int i = whereArgs.length; i != 0; i--) {
+				sqliteStatement.bindString(i, whereArgs[i - 1]);
+			}
+		}
+		try {
+			result = TRUE.equals(sqliteStatement.simpleQueryForString());
+		} finally {
+			sqliteStatement.close();
+			closeDatabase();
+		}
+		return result;
+	}
+
 	public void executeSQL(String query, String... arguments) {
 		getDatabase().execSQL(query, arguments);
 		closeDatabase();
@@ -416,9 +503,10 @@ public abstract class BaseDao<T> {
 
 		final Cursor cursor;
 		final Map<Class, Map<Long, Object>> map;
+
 		public EntityIterator(Cursor cursor) {
 			this.cursor = cursor;
-			this.map=getCachedEntityMap();
+			this.map = getCachedEntityMap();
 		}
 
 		@Override
@@ -466,7 +554,6 @@ public abstract class BaseDao<T> {
 	}
 
 
-
 	protected final void innerSave(Long id, Object obj, Map<Class, Map<Long, Object>> map) {
 		if (map != null) {
 			Class cls = obj.getClass();
@@ -495,7 +582,7 @@ public abstract class BaseDao<T> {
 
 	@SuppressWarnings("unchecked")
 	protected final <E> E innerFind(Long id, Class<E> cls, Map<Class, Map<Long, Object>> map) {
-		if (map == null||id==null||cls==null) return null;
+		if (map == null || id == null || cls == null) return null;
 		Map<Long, Object> innerMap;
 		if (map.containsKey(cls)) {
 			innerMap = map.get(cls);
@@ -511,20 +598,20 @@ public abstract class BaseDao<T> {
 		}
 	}
 
-	protected final <E> E innerFind(Cursor cursor,String columnName,Class<E> cls, Map<Class, Map<Long, Object>> map){
-		return innerFind(cursor.getLong(cursor.getColumnIndex(columnName)),cls,map);
+	protected final <E> E innerFind(Cursor cursor, String columnName, Class<E> cls, Map<Class, Map<Long, Object>> map) {
+		return innerFind(cursor.getLong(cursor.getColumnIndex(columnName)), cls, map);
 	}
 
 	@SuppressWarnings("unchecked")
-	protected final <E> Long innerGetId(E entity){
-		if(entity!=null){
-			return ORM.getDao((Class<E>)entity.getClass()).getIdentity(entity);
+	protected final <E> Long innerGetId(E entity) {
+		if (entity != null) {
+			return ORM.getDao((Class<E>) entity.getClass()).getIdentity(entity);
 		}
 		return null;
 	}
 
-	protected final Long innerGetSelfId(T entity){
-		if(entity!=null){
+	protected final Long innerGetSelfId(T entity) {
+		if (entity != null) {
 			return getIdentity(entity);
 		}
 		return null;

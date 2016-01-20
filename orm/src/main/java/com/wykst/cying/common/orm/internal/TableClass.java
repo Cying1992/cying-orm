@@ -41,7 +41,7 @@ class TableClass {
 	//保存字段类型是表的实体类的ColumnField
 	private List<ColumnField> tableEntityColumnFieldList;
 
-	private boolean hasDateField, hasCanlendarField, hasTimestampField, hasBigDecimalField, hasTableEntityField;
+	private boolean hasDateField, hasCalendarField, hasTimestampField, hasBigDecimalField, hasTableEntityField;
 
 	public TableClass(TypeElement entityElement) {
 		checkValid(entityElement);
@@ -139,7 +139,7 @@ class TableClass {
 		for (ColumnField columnField : columnFieldMap.values()) {
 			switch (columnField.getFieldType()) {
 				case CALENDAR:
-					hasCanlendarField = true;
+					hasCalendarField = true;
 					break;
 				case DATE:
 					hasDateField = true;
@@ -203,7 +203,7 @@ class TableClass {
 		if (hasBigDecimalField) builder.append("import java.math.BigDecimal;\n");
 		if (hasTimestampField) builder.append("import java.sql.Timestamp;\n");
 		if (hasDateField) builder.append("import java.util.Date;\n");
-		if (hasCanlendarField) builder.append("import java.util.Calendar;\n");
+		if (hasCalendarField) builder.append("import java.util.Calendar;\n");
 		builder.append("import java.util.*;\n");
 
 		//class
