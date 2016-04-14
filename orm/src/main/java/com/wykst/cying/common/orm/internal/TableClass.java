@@ -58,7 +58,6 @@ class TableClass {
 		prepareCreateTableSQL();
 	}
 
-
 	private String findEntityClassName(TypeElement type, String packageName) {
 		int packageLen = packageName.length() + 1;
 		return type.getQualifiedName().toString().substring(packageLen);
@@ -80,7 +79,6 @@ class TableClass {
 		ORMProcessor.isNotClassType(Table.class, entityElement);
 		ORMProcessor.isClassInaccessibleViaGeneratedCode(entityElement);
 	}
-
 
 	private void preparePrimaryKey(VariableElement fieldElement) {
 		if (hasPrimaryKey) {
@@ -158,7 +156,6 @@ class TableClass {
 
 	}
 
-
 	private void prepareCreateTableSQL() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("CREATE TABLE [");
@@ -179,7 +176,6 @@ class TableClass {
 	String getTableName() {
 		return tableName;
 	}
-
 
 	boolean hasPrimaryKey() {
 		return hasPrimaryKey;

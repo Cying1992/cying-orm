@@ -1,13 +1,13 @@
 package orm.internal;
 
 import com.google.common.base.Joiner;
+import com.google.common.truth.Truth;
 import com.google.testing.compile.JavaFileObjects;
 import com.wykst.cying.common.orm.internal.ORMProcessor;
 import org.junit.Test;
 
 import javax.tools.JavaFileObject;
 
-import static com.google.common.truth.Truth.ASSERT;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 /**
@@ -27,7 +27,6 @@ public class ProcessorTest {
 				"  @Key long id;",
 				"  String name;",
 				"}"));
-
 		JavaFileObject expectedSource = JavaFileObjects.forSourceString("test/Test$$ViewBinder",
 				Joiner.on('\n').join(
 						"// Generated code from Cying-ORM. Do not modify!",
@@ -64,7 +63,7 @@ public class ProcessorTest {
 						"}"
 				));
 
-		ASSERT.about(javaSource()).that(source)
+		Truth.assertAbout(javaSource()).that(source)
 				.processedWith(new ORMProcessor())
 				.compilesWithoutError()
 				.and()

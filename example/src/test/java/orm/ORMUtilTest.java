@@ -1,5 +1,6 @@
 package orm;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import com.wykst.cying.common.orm.BaseDao;
 import com.wykst.cying.common.orm.DatabaseConfiguration;
@@ -25,7 +26,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
 public class ORMUtilTest {
 	static {
 		ORM.init(new ORMConfiguration
-				.Builder(Robolectric.application)
+				.Builder(Robolectric.setupActivity(Activity.class))
 				.setDebug(true)
 				.register(A.class)
 				.register(B.class)
