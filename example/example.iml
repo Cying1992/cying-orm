@@ -19,5 +19,6 @@
     <orderEntry type="library" scope="TEST" name="com.google.testing.compile:compile-testing:0.8" level="application" />
     <orderEntry type="library" scope="TEST" name="com.google.truth:truth:0.28" level="application" />
     <orderEntry type="library" scope="TEST" name="org.robolectric:robolectric:3.0" level="application" />
+    <orderEntry type="module" module-name="orm" />
   </component>
 </module>
